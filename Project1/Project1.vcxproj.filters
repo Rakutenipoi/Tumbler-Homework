@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="资源文件\Shader">
+      <UniqueIdentifier>{0d685698-0ae5-4220-94bf-81f8d2e0074b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件\Shader\Fragment">
+      <UniqueIdentifier>{0b4a4517-ca61-47d1-b3c5-6e1a9bec1ee6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件\Shader\Vertex">
+      <UniqueIdentifier>{83656f0d-c945-46e0-810d-d42a9f437248}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -21,13 +30,27 @@
     <ClCompile Include="..\..\..\Env\glad\src\glad.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="utils.cpp">
+    <ClCompile Include="src\utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="include\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\Shader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\Vertex\line.vs">
+      <Filter>资源文件\Shader\Vertex</Filter>
+    </None>
+    <None Include="Shader\Fragment\line.fs">
+      <Filter>资源文件\Shader\Fragment</Filter>
+    </None>
   </ItemGroup>
 </Project>
