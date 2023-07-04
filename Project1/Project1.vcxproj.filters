@@ -39,6 +39,9 @@
     <ClCompile Include="src\Plane.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\Box.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\utils.h">
@@ -48,6 +51,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\Plane.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Box.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -60,5 +66,7 @@
     </None>
     <None Include="Shader\Fragment\plane.fs" />
     <None Include="Shader\Vertex\plane.vs" />
+    <None Include="Shader\Fragment\box.fs" />
+    <None Include="Shader\Vertex\box.vs" />
   </ItemGroup>
 </Project>

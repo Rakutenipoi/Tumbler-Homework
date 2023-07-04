@@ -5,14 +5,15 @@
 #include "include/utils.h"
 #include "include/Shader.h"
 #include "include/Plane.h"
+#include "include/Box.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 // 设置
 // ----
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1200;
+const unsigned int SCR_HEIGHT = 800;
 
 glm::vec3 lineColor[] = { glm::vec3(0.5f, 0.5f, 0.0f) , glm::vec3(0.0f, 0.5f, 0.5f) };
 float planeVertices[] = {
@@ -61,24 +62,22 @@ int main()
     // 创建着色器
     // ----------
     // Shader lineShader("line", "line");
-    Shader planeShader("plane", "plane");
+    // Shader planeShader("plane", "plane");
+    Shader boxShader("box", "box");
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
-    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    // model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -2.0f));
+    projection = glm::perspective(glm::radians(40.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-    // 创建平面对象
-    // ------------
-    Plane plane;
-    int numVertices = sizeof(planeVertices) / sizeof(planeVertices[0]);
-    int numIndices = sizeof(planeIndices) / sizeof(planeIndices[0]);
-    plane.setShader(planeShader);
-    plane.setData(planeVertices, planeIndices, numVertices, numIndices);
-    plane.setMatrix(model, view, projection);
-    
+    // 创建box对象
+    // -----------
+    Box box;
+    box.setShader(boxShader);
+    box.setData();
+    box.setMatrix(model, view, projection);
 
 
     // 渲染循环
@@ -93,10 +92,8 @@ int main()
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        // lineSegment(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), lineColor[0], lineShader);
-        // lineSegment(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), lineColor[1], lineShader);
-        plane.draw(glm::vec3(0.5f, 0.5f, 0.8f));
+
+        box.draw();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

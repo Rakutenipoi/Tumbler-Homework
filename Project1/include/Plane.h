@@ -27,7 +27,7 @@ public:
 	void setData(float* vertices, unsigned int* indices, int numVertices, int numIndices);
 	void draw(glm::vec3 color);
 
-private:
+protected:
 	float* vertices;
 	unsigned int* indices;
 	unsigned int vbo, vao, ebo;
