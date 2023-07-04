@@ -1,5 +1,9 @@
 #include "../include/Shader.h"
 
+Shader::Shader()
+{
+}
+
 Shader::Shader(const char* vertexName, const char* fragmentName)
 {
     // 1. 从文件路径中获取顶点/片段着色器
@@ -86,12 +90,46 @@ Shader::Shader(const char* vertexName, const char* fragmentName)
     // 删除着色器
     glDeleteShader(vertex);
     glDeleteShader(fragment);
-
 }
 
 void Shader::use()
 {
     glUseProgram(ID);
+}
+
+void Shader::setBool(const std::string& name, bool value) const
+{
+    glUniform1i(glGetUniformLocation(this->ID, name.c_str()), (int)value);
+}
+
+void Shader::setInt(const std::string& name, int value) const
+{
+    glUniform1i(glGetUniformLocation(this->ID, name.c_str()), value);
+}
+
+void Shader::setFloat(const std::string& name, float value) const
+{
+    glUniform1f(glGetUniformLocation(this->ID, name.c_str()), value);
+}
+
+void Shader::setVector2(const std::string& name, glm::vec2 value) const
+{
+    glUniform2f(glGetUniformLocation(this->ID, name.c_str()), value.x, value.y);
+}
+
+void Shader::setVector3(const std::string& name, glm::vec3 value) const
+{
+    glUniform3f(glGetUniformLocation(this->ID, name.c_str()), value.x, value.y, value.z);
+}
+
+void Shader::setVector4(const std::string& name, glm::vec4 value) const
+{
+    glUniform4f(glGetUniformLocation(this->ID, name.c_str()), value.x, value.y, value.z, value.w);
+}
+
+void Shader::setMatrix4(const std::string& name, glm::mat4 value) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 std::vector<char*> Shader::getShaderPath(const char* vertexName, const char* fragmentName)

@@ -1,6 +1,6 @@
 #include "../include/utils.h"
 
-void lineSegment(glm::vec3 start, glm::vec3 end, glm::vec3 color)
+void lineSegment(glm::vec3 start, glm::vec3 end, glm::vec3 color, Shader shader)
 {
 	std::vector<glm::vec3> vertices;
 	vertices.push_back(start);
@@ -19,9 +19,15 @@ void lineSegment(glm::vec3 start, glm::vec3 end, glm::vec3 color)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	shader.setVector3("lineColor", color);
+	shader.use();
+
 	glBindVertexArray(vao);
 	glDrawArrays(GL_LINES, 0, 2);
 
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
 }
+
+
+
