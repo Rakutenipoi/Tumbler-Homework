@@ -146,7 +146,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Env\glad\src\glad.c" />
-    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="src\Model.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Box.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\Plane.cpp" />
@@ -155,10 +156,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Box.h" />
+    <ClInclude Include="include\Model.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\Plane.h" />
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="include\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Fragment\box.fs" />
