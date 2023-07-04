@@ -2,10 +2,13 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <assimp/Importer.hpp>
+
 #include "include/utils.h"
 #include "include/Shader.h"
 #include "include/Plane.h"
 #include "include/Box.h"
+#include "include/Mesh.h"
+#include "include/Model.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -62,8 +65,6 @@ int main()
 
     // 创建着色器
     // ----------
-    // Shader lineShader("line", "line");
-    // Shader planeShader("plane", "plane");
     Shader boxShader("box", "box");
 
     glm::mat4 model = glm::mat4(1.0f);
@@ -80,6 +81,10 @@ int main()
     box.setData();
     box.setMatrix(model, view, projection);
 
+    // 读取模型
+    // --------
+    std::string modelPath = "Resource/Model/nanosuit/nanosuit.obj";
+    Model nanosuit(const_cast<char*>(modelPath.c_str()));
 
     // 渲染循环
     // --------
