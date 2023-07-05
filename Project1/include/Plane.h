@@ -8,7 +8,9 @@
 #include <iostream>
 #include <vector>
 
+#include "Asset.h"
 #include "Shader.h"
+
 
 enum MATRIX_TYPE
 {
@@ -17,7 +19,7 @@ enum MATRIX_TYPE
 	PROJECTION,
 };
 
-class Plane
+class Plane : public Asset
 {
 public:
 	Plane();
