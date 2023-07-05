@@ -54,6 +54,9 @@
     <ClCompile Include="src\Asset.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\display.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\utils.h">
@@ -78,6 +81,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\Asset.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\display.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
