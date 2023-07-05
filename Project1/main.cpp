@@ -1,9 +1,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <assimp/Importer.hpp>
 
 #include "include/display.h"
+#include "include/edit.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -54,10 +54,10 @@ int main()
     switch (mode)
     {
     case DISPLAY:
-        display(window);
+        display::Display(window);
         break;
     case EDIT:
-
+        edit::Edit(window);
         break;
     default:
         break;
