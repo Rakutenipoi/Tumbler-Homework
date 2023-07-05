@@ -48,6 +48,9 @@
     <ClCompile Include="src\Model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\utils.h">
@@ -68,6 +71,9 @@
     <ClInclude Include="include\Model.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\Camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Vertex\line.vs">
@@ -80,5 +86,7 @@
     <None Include="Shader\Vertex\plane.vs" />
     <None Include="Shader\Fragment\box.fs" />
     <None Include="Shader\Vertex\box.vs" />
+    <None Include="Shader\Fragment\model.fs" />
+    <None Include="Shader\Vertex\model.vs" />
   </ItemGroup>
 </Project>
