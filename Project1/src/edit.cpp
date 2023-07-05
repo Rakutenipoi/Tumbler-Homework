@@ -12,18 +12,25 @@ using namespace edit;
 // 分辨率设置
 const unsigned int SCR_WIDTH = 1200;
 const unsigned int SCR_HEIGHT = 1200;
-bool click = false;
+bool click = true;
 
 // 辅助线
 vector<glm::vec3> xAxis = { glm::vec3(-1.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0) };
 vector<glm::vec3> yAxis = { glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 1.0, 0.0) };
-vector<glm::vec3> axisColor = { glm::vec3{0.5, 0.5, 0.0}, glm::vec3(0.0, 0.5, 0.5) };
+vector<glm::vec3> zAxis = { glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 0.0, 1.0) };
+vector<glm::vec3> axisColor = { glm::vec3{0.5, 0.5, 0.0}, glm::vec3(0.0, 0.5, 0.5), glm::vec3(0.5, 0.0, 0.5) };
+
+glm::vec3 cameraPosition(0.0f, 3.0f, 3.0f); // 观察者的位置
+glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f); // 观察目标的位置
+glm::vec3 up(0.0f, 1.0f, 0.0f); // 上方向向量
 
 // 控制点坐标
 vector<glm::vec3> controlPoints;
+vector<glm::vec3> drawPoints;
 int index = 0;
 
-glm::vec3 color(1.0f, 0.0f, 0.0f); // 设置颜色为红色
+glm::vec3 red(1.0f, 0.0f, 0.0f); // 设置颜色为红色
+glm::vec3 blue(0.0f, 0.0f, 1.0f);
 
 void Edit(GLFWwindow* window) {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -35,10 +42,6 @@ void Edit(GLFWwindow* window) {
     // 创建着色器
     // ----------
     Shader lineShader("line", "line");
-    lineShader.use();
-
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
 
     // 渲染循环
     // --------
@@ -53,11 +56,13 @@ void Edit(GLFWwindow* window) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        pointsDraw(controlPoints, lineShader);
+        pointsDraw(controlPoints, red, lineShader);
+        triangleDraw(drawPoints, blue, lineShader);
 
         // 创建参考辅助线
         lineSegment(xAxis.at(0), xAxis.at(1), axisColor.at(0), lineShader);
         lineSegment(yAxis.at(0), yAxis.at(1), axisColor.at(1), lineShader);
+        lineSegment(zAxis.at(0), zAxis.at(1), axisColor.at(2), lineShader);
 
         // 设置着色器uniform变量
         float time = glfwGetTime();
@@ -80,6 +85,39 @@ void Edit(GLFWwindow* window) {
     
 }
 
+void edit::RotatePoints(vector<glm::vec3> &pts, vector<glm::vec3> &draw)
+{
+    vector<glm::vec3> voxels;
+    glm::mat4 model = glm::mat4(1.0f);
+    int gap = 20;
+
+    for (int i = gap; i < 360; i += gap) {
+        model = glm::rotate(model, glm::radians((float)gap), glm::vec3(0.0, 1.0, 0.0));
+        for (glm::vec3 pt : pts) {
+            voxels.push_back(glm::vec3(model * glm::vec4(pt, 1.0)));
+        }
+    }
+
+    for (glm::vec3 pt : pts) {
+        draw.push_back(pt);
+    }
+    
+    for (glm::vec3 pt : voxels) {
+        draw.push_back(pt);
+    }
+
+    model = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0, 0.0, 0.0));
+    for (int i = 0; i < draw.size(); i++) {
+        glm::vec3 pt = draw.at(i);
+        draw.at(i) = glm::vec3(model * glm::vec4(pt, 1.0f));
+    }
+    for (int i = 0; i < pts.size(); i++) {
+        glm::vec3 pt = pts.at(i);
+        pts.at(i) = glm::vec3(model * glm::vec4(pt, 1.0f));
+    }
+}
+
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -87,6 +125,16 @@ void edit::processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && click) {
+        RotatePoints(controlPoints, drawPoints);
+        click = false;
+    }
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+        controlPoints.clear();
+        drawPoints.clear();
+        index = 0;
+        click = true;
+    }   
 }
 
 
@@ -105,7 +153,8 @@ void edit::mouseButtonCallback(GLFWwindow* window, int button, int action, int m
         controlPoints.push_back(glm::vec3(x, y, 0.0f));
         index++;
 
-        printf("%f, %f\n", controlPoints.at(index - 1).x, controlPoints.at(index - 1).y);
+        if (index > 0)
+            printf("%f, %f\n", controlPoints.at(index - 1).x, controlPoints.at(index - 1).y);
     }
 }
 

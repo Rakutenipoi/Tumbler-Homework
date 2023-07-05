@@ -8,8 +8,8 @@
 #include "Shader.h"
 
 void lineSegment(glm::vec3 start, glm::vec3 end, glm::vec3 color, Shader shader);
-void pointsDraw(std::vector<glm::vec3> pts, Shader shader);
-
+void pointsDraw(std::vector<glm::vec3> pts, glm::vec3 color, Shader shader);
+void triangleDraw(std::vector<glm::vec3> pts, glm::vec3 color, Shader shader);
 
 
 
