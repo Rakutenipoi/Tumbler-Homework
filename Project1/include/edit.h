@@ -10,10 +10,11 @@
 #include <vector>
 
 namespace edit{
-	void Edit(GLFWwindow* window);
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void processInput(GLFWwindow* window);
+	void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 }
 
-
+void Edit(GLFWwindow* window);
+glm::vec2 calculateBezierPoint(float t);
 

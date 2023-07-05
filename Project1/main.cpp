@@ -10,7 +10,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 // 设置
 // ----
 const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_HEIGHT = 1200;
 
 enum MODE
 {
@@ -18,7 +18,8 @@ enum MODE
     EDIT
 };
 
-MODE mode = DISPLAY;
+// 模式选择
+MODE mode = EDIT;
 
 int main()
 {
@@ -54,10 +55,10 @@ int main()
     switch (mode)
     {
     case DISPLAY:
-        display::Display(window);
+        Display(window);
         break;
     case EDIT:
-        edit::Edit(window);
+        Edit(window);
         break;
     default:
         break;
