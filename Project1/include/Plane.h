@@ -12,7 +12,7 @@
 #include "Shader.h"
 
 
-enum MATRIX_TYPE
+enum class MATRIX_TYPE
 {
 	MODEL,
 	VIEW,

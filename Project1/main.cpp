@@ -10,7 +10,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 // 设置
 // ----
 const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 1200;
+const unsigned int SCR_HEIGHT = 800;
 
 enum MODE
 {
@@ -19,7 +19,7 @@ enum MODE
 };
 
 // 模式选择
-MODE mode = EDIT;
+MODE mode = DISPLAY;
 
 int main()
 {

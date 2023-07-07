@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Env\glad\src\glad.c" />
+    <ClCompile Include="src\Sphere.cpp" />
     <ClCompile Include="src\Asset.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\display.cpp" />
@@ -169,16 +170,19 @@
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\Plane.h" />
     <ClInclude Include="include\Mesh.h" />
+    <ClInclude Include="include\Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Fragment\box.fs" />
     <None Include="Shader\Fragment\model.fs" />
     <None Include="Shader\Fragment\plane.fs" />
     <None Include="Shader\Fragment\line.fs" />
+    <None Include="Shader\Fragment\sphere.fs" />
     <None Include="Shader\Vertex\box.vs" />
     <None Include="Shader\Vertex\model.vs" />
     <None Include="Shader\Vertex\plane.vs" />
     <None Include="Shader\Vertex\line.vs" />
+    <None Include="Shader\Vertex\sphere.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

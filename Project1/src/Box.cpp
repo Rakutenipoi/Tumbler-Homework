@@ -85,10 +85,10 @@ void Box::setData()
 
 void Box::draw()
 {
+	this->shader.use();
 	this->shader.setMatrix4("model", this->model);
 	this->shader.setMatrix4("view", this->view);
 	this->shader.setMatrix4("projection", this->projection);
-	this->shader.use();
 	glBindVertexArray(this->vao);
 	glDrawElements(GL_TRIANGLES, 30, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

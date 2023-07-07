@@ -16,13 +16,13 @@ void Plane::setMatrix(MATRIX_TYPE type, glm::mat4 value)
 {
 	switch (type)
 	{
-		case MODEL:
+		case MATRIX_TYPE::MODEL:
 			this->model = value;
 			break;
-		case VIEW:
+		case MATRIX_TYPE::VIEW:
 			this->view = value;
 			break;
-		case PROJECTION:
+		case MATRIX_TYPE::PROJECTION:
 			this->projection = value;
 			break;
 		default:
@@ -32,9 +32,9 @@ void Plane::setMatrix(MATRIX_TYPE type, glm::mat4 value)
 
 void Plane::setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 projection)
 {
-	this->setMatrix(MODEL, model);
-	this->setMatrix(VIEW, view);
-	this->setMatrix(PROJECTION, projection);
+	this->setMatrix(MATRIX_TYPE::MODEL, model);
+	this->setMatrix(MATRIX_TYPE::VIEW, view);
+	this->setMatrix(MATRIX_TYPE::PROJECTION, projection);
 }
 
 void Plane::setData(float* vertices, unsigned int* indices, int numVertices, int numIndices)

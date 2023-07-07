@@ -6,6 +6,7 @@
 #include "../include/Mesh.h"
 #include "../include/Model.h"
 #include "../include/Camera.h"
+#include "../include/Sphere.h"
 
 using namespace display;
 
@@ -32,10 +33,7 @@ void Display(GLFWwindow* window) {
     // ----------
     Shader boxShader("box", "box");
     Shader modelShader("model", "model");
-
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 projection = glm::mat4(1.0f);
+    Shader sphereShader("sphere", "sphere");
 
     // 创建box对象
     // -----------
@@ -43,10 +41,19 @@ void Display(GLFWwindow* window) {
     box.setShader(boxShader);
     box.setData();
 
+    // 创建球体对象
+    Sphere sphere(0.01f, 30, 30);
+    sphere.setShader(sphereShader);
+
     // 读取模型
     // --------
     std::string modelPath = "Resource/Model/tumbler/tumbler.obj";
-    Model tumbler(const_cast<char*>(modelPath.c_str()));
+    vector<Model*> tumblers;
+    for (int i = 0; i < 3; i++) {
+        Model* tumbler = new Model(const_cast<char*>(modelPath.c_str()));
+        tumblers.push_back(tumbler);
+    }
+    vector<glm::vec3> tumblerPosition = { glm::vec3(0.3f, -0.45f, 0.2f), glm::vec3(-0.3f, -0.45f, -0.3f), glm::vec3(0.0f, -0.45f, 0.0f) };
 
     // 渲染循环
     // --------
@@ -65,24 +72,43 @@ void Display(GLFWwindow* window) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // 着色器设置
-        // model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+        vector<glm::mat4> tumblerModel(tumblers.size(), glm::mat4(1.0f));
+        //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        //model = glm::scale(model, glm::vec3(2, 2, 2));
         view = camera.GetViewMatrix();
         projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         box.setMatrix(model, view, projection);
-        modelShader.setMatrix4("model", model);
-        modelShader.setMatrix4("view", view);
-        modelShader.setMatrix4("projection", projection);
+        sphere.setMatrix(model, view, projection);
 
         // 绘制场景
-        tumbler.Draw(modelShader);
         box.draw();
+        sphere.draw();
+
+        modelShader.use();
+        for (int i = 0; i < tumblers.size(); i++) {
+            tumblerModel.at(i) = glm::translate(glm::mat4(1.0f), tumblerPosition.at(i));
+            modelShader.setMatrix4("model", tumblerModel.at(i));
+            modelShader.setMatrix4("view", view);
+            modelShader.setMatrix4("projection", projection);
+            tumblers.at(i)->Draw(modelShader);
+        }
+        
+        
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    for (int i = 0; i < tumblers.size(); i++) {
+        delete tumblers.at(i);
+    }
+    tumblers.clear();
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
