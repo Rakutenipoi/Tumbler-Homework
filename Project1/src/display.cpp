@@ -48,6 +48,9 @@ void Display(GLFWwindow* window) {
 	glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // 创建着色器
     // ----------
     Shader boxShader("box", "box");
@@ -182,6 +185,7 @@ void display::processInput(GLFWwindow* window)
 
             for (int i = 0; i < spheres.size(); i++) {
                 PhysSphere* sphere = spheres.at(i);
+                sphere->stop = true;
                 sphere->setAcc(glm::vec3(0.0f, -0.98f, 0.0f));
                 sphere->setVel(glm::vec3(0.0f));
             }
@@ -193,6 +197,7 @@ void display::processInput(GLFWwindow* window)
 
         for (int i = 0; i < spheres.size(); i++) {
             PhysSphere* sphere = spheres.at(i);
+            sphere->stop = false;
             sphere->setAcc(glm::vec3(0.0f));
             sphere->setVel(glm::vec3(0.0f));
             sphere->setPos(spherePosition.at(i));

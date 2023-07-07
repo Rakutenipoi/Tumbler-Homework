@@ -21,12 +21,14 @@ public:
 	void setColor(glm::vec3 color);
 	void draw();
 	void init(float radius, int slices, int stacks);
+	void setAlpha(float value);
 
 protected:
 	std::vector<float> vertices;
 	std::vector<float> normals;
 	std::vector<unsigned int> indices;
 	glm::vec3 color;
+	float alpha;
 	float radius;
 	int slices;
 	int stacks;

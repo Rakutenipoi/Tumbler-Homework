@@ -22,6 +22,8 @@ public:
     void setVel(glm::vec3 value);
     void setAcc(glm::vec3 value);
 
+    bool stop;
+
 protected:
     glm::vec3 position;
     glm::vec3 velocity;

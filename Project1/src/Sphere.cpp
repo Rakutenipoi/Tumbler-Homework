@@ -24,10 +24,11 @@ void Sphere::setColor(glm::vec3 color)
 void Sphere::draw()
 {
 	this->shader.use();
-    this->shader.setVector3("color", color);
+    this->shader.setVector3("color", this->color);
 	this->shader.setMatrix4("model", this->model);
 	this->shader.setMatrix4("view", this->view);
 	this->shader.setMatrix4("projection", this->projection);
+    this->shader.setFloat("alpha", this->alpha);
 	glBindVertexArray(this->vao);
     glDrawElements(GL_TRIANGLES, this->slices * this->stacks * 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
@@ -38,6 +39,7 @@ void Sphere::init(float radius, int slices, int stacks)
     this->radius = radius;
     this->slices = slices;
     this->stacks = stacks;
+    this->alpha = 1.0f;
     this->setColor(glm::vec3(1.0f));
     this->createSphere(radius, slices, stacks);
 
@@ -62,6 +64,11 @@ void Sphere::init(float radius, int slices, int stacks)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+}
+
+void Sphere::setAlpha(float value)
+{
+    this->alpha = value;
 }
 
 void Sphere::createSphere(float radius, int slices, int stacks)
