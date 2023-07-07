@@ -9,6 +9,8 @@
 #include "../include/Sphere.h"
 #include "../include/PhysSphere.h"
 
+#include <glm/gtc/random.hpp>
+
 using namespace display;
 
 // 分辨率设置
@@ -24,6 +26,10 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
+// 按键设置
+bool First_R_Key = true;
+bool First_S_Key = true;
+
 // 物体位置参数
     // ------------
 vector<glm::vec3> tumblerPosition = { glm::vec3(0.3f, -0.45f, 0.2f), glm::vec3(-0.3f, -0.45f, -0.3f), glm::vec3(0.0f, -0.45f, 0.0f) };
@@ -33,6 +39,8 @@ vector<glm::vec3> spherePosition = {
     glm::vec3(-0.302903f, -0.0365484f, 0.308075f), glm::vec3(-0.198631f, -0.303337f, 0.315939f), glm::vec3(-0.347168f, -0.209269f, -0.343179f),
     glm::vec3(-0.353572f, -0.262772f, 0.230868f),
 };
+
+vector<PhysSphere*> spheres;
 
 // 渲染显示
 void Display(GLFWwindow* window) {
@@ -54,10 +62,9 @@ void Display(GLFWwindow* window) {
 
     // 创建球体对象
     // ------------
-    vector<PhysSphere*> spheres;
     for (int i = 0; i < 10; i++) {
-        PhysSphere* sphere = new PhysSphere(spherePosition.at(i), 0.01f, 30, 30);
-        sphere->setAcc(glm::vec3(0.0f, -0.2f, 0.0f));
+        PhysSphere* sphere = new PhysSphere(spherePosition.at(i), 0.01f, 30, 30, 1.0f);
+        sphere->setAcc(glm::vec3(0.0f, -0.0f, 0.0f));
         sphere->setColor(glm::vec3(1.0f));
         sphere->setShader(sphereShader);
         spheres.push_back(sphere);
@@ -162,6 +169,37 @@ void display::processInput(GLFWwindow* window)
         camera.Position += cameraSpeed * camera.WorldUp;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         camera.Position -= cameraSpeed * camera.WorldUp;
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+        if (First_R_Key) {
+            First_R_Key = false;
+            InitSphere();
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+        if (First_S_Key) {
+            First_R_Key = false;
+            First_S_Key = false;
+
+            for (int i = 0; i < spheres.size(); i++) {
+                PhysSphere* sphere = spheres.at(i);
+                sphere->setAcc(glm::vec3(0.0f, -0.98f, 0.0f));
+                sphere->setVel(glm::vec3(0.0f));
+            }
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+        First_R_Key = true;
+        First_S_Key = true;
+
+        for (int i = 0; i < spheres.size(); i++) {
+            PhysSphere* sphere = spheres.at(i);
+            sphere->setAcc(glm::vec3(0.0f));
+            sphere->setVel(glm::vec3(0.0f));
+            sphere->setPos(spherePosition.at(i));
+            sphere->setColor(glm::vec3(1.0f));
+        }
+    }
+        
 }
 
 // glfw: whenever the mouse moves, this callback is called
@@ -192,4 +230,12 @@ void display::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 void display::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+void InitSphere()
+{
+    for (int i = 0; i < spheres.size(); i++) {
+        glm::vec3 velocity = glm::ballRand(1.0f) * glm::linearRand(1.0f, 2.0f);
+        spheres.at(i)->setVel(velocity);
+    }
 }

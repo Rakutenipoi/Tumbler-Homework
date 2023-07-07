@@ -16,14 +16,16 @@
 class PhysSphere : public Sphere
 {
 public:
-    PhysSphere(glm::vec3 position, float radius, int slices, int stacks);
+    PhysSphere(glm::vec3 position, float radius, int slices, int stacks, float mass);
     glm::mat4 update(float deltaTime);
     void setPos(glm::vec3 value);
+    void setVel(glm::vec3 value);
     void setAcc(glm::vec3 value);
 
 protected:
     glm::vec3 position;
     glm::vec3 velocity;
     glm::vec3 acceleration;
+    float mass;
 };
 

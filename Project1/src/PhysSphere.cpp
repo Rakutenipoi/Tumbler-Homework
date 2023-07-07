@@ -1,6 +1,6 @@
 #include "../include/PhysSphere.h"
 
-PhysSphere::PhysSphere(glm::vec3 position, float radius, int slices, int stacks)
+PhysSphere::PhysSphere(glm::vec3 position, float radius, int slices, int stacks, float mass)
 {
 	this->init(radius, slices, stacks);
 	this->position = position;
@@ -21,6 +21,11 @@ glm::mat4 PhysSphere::update(float deltaTime)
 void PhysSphere::setPos(glm::vec3 value)
 {
 	this->position = value;
+}
+
+void PhysSphere::setVel(glm::vec3 value)
+{
+	this->velocity = value;
 }
 
 void PhysSphere::setAcc(glm::vec3 value)

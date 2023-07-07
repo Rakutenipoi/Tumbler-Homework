@@ -16,4 +16,6 @@ namespace display{
 }
 
 void Display(GLFWwindow* window);
+void InitSphere();
+
 
