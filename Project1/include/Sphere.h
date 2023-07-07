@@ -16,9 +16,11 @@ using namespace std;
 class Sphere : public Plane
 {
 public:
+	Sphere();
 	Sphere(float radius, int slices, int stacks); 
 	void setColor(glm::vec3 color);
 	void draw();
+	void init(float radius, int slices, int stacks);
 
 protected:
 	std::vector<float> vertices;

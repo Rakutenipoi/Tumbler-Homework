@@ -2,14 +2,45 @@
 
 #define M_PI 3.1415926
 
+float radius = 0.1f;
+int slices = 30;
+int stacks = 30;
+
+Sphere::Sphere()
+{
+    Sphere(radius, slices, stacks);
+}
+
 Sphere::Sphere(float radius, int slices, int stacks)
+{
+    this->init(radius, slices, stacks);
+}
+
+void Sphere::setColor(glm::vec3 color)
+{
+    this->color = color;
+}
+
+void Sphere::draw()
+{
+	this->shader.use();
+    this->shader.setVector3("color", color);
+	this->shader.setMatrix4("model", this->model);
+	this->shader.setMatrix4("view", this->view);
+	this->shader.setMatrix4("projection", this->projection);
+	glBindVertexArray(this->vao);
+    glDrawElements(GL_TRIANGLES, this->slices * this->stacks * 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+
+void Sphere::init(float radius, int slices, int stacks)
 {
     this->radius = radius;
     this->slices = slices;
     this->stacks = stacks;
     this->setColor(glm::vec3(1.0f));
     this->createSphere(radius, slices, stacks);
-	
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
@@ -31,23 +62,6 @@ Sphere::Sphere(float radius, int slices, int stacks)
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-}
-
-void Sphere::setColor(glm::vec3 color)
-{
-    this->color = color;
-}
-
-void Sphere::draw()
-{
-	this->shader.use();
-    this->shader.setVector3("color", color);
-	this->shader.setMatrix4("model", this->model);
-	this->shader.setMatrix4("view", this->view);
-	this->shader.setMatrix4("projection", this->projection);
-	glBindVertexArray(this->vao);
-    glDrawElements(GL_TRIANGLES, this->slices * this->stacks * 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
 }
 
 void Sphere::createSphere(float radius, int slices, int stacks)
