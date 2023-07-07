@@ -42,9 +42,14 @@ void Display(GLFWwindow* window) {
     box.setData();
 
     // 创建球体对象
-    Sphere sphere(0.01f, 30, 30);
-    sphere.setShader(sphereShader);
+    vector<Sphere*> spheres;
+    for (int i = 0; i < 10; i++) {
+        Sphere* sphere = new Sphere(0.01f, 30, 30);
+        sphere->setShader(sphereShader);
+        spheres.push_back(sphere);
 
+    }
+    
     // 读取模型
     // --------
     std::string modelPath = "Resource/Model/tumbler/tumbler.obj";
@@ -54,6 +59,12 @@ void Display(GLFWwindow* window) {
         tumblers.push_back(tumbler);
     }
     vector<glm::vec3> tumblerPosition = { glm::vec3(0.3f, -0.45f, 0.2f), glm::vec3(-0.3f, -0.45f, -0.3f), glm::vec3(0.0f, -0.45f, 0.0f) };
+    vector<glm::vec3> spherePosition = { 
+        glm::vec3(0.0907949f, -0.399212f, -0.208774f), glm::vec3(-0.0186592f, -0.202571f, -0.213606f), glm::vec3(-0.0883394f, -0.287907f, -0.383346f), 
+        glm::vec3(-0.273077f, 0.264156f, -0.181063f), glm::vec3(0.0192792f, 0.310677f, 0.360827f), glm::vec3(-0.252072f, 0.309068f, 0.0559487f), 
+        glm::vec3(-0.302903f, -0.0365484f, 0.308075f), glm::vec3(-0.198631f, -0.303337f, 0.315939f), glm::vec3(-0.347168f, -0.209269f, -0.343179f), 
+        glm::vec3(-0.353572f, -0.262772f, 0.230868f),
+    };
 
     // 渲染循环
     // --------
@@ -76,18 +87,25 @@ void Display(GLFWwindow* window) {
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
         vector<glm::mat4> tumblerModel(tumblers.size(), glm::mat4(1.0f));
+        vector<glm::mat4> sphereModel(spheres.size(), glm::mat4(1.0f));
         //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         //model = glm::scale(model, glm::vec3(2, 2, 2));
         view = camera.GetViewMatrix();
         projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         box.setMatrix(model, view, projection);
-        sphere.setMatrix(model, view, projection);
 
         // 绘制场景
         box.draw();
-        sphere.draw();
-
+        // 绘制小球
+        sphereShader.use();
+        for (int i = 0; i < spheres.size(); i++) {
+            Sphere* sphere = spheres.at(i);
+            sphereModel.at(i) = glm::translate(glm::mat4(1.0f), spherePosition.at(i));
+            sphere->setMatrix(sphereModel.at(i), view, projection);
+            sphere->draw();
+        }
+        // 绘制不倒翁
         modelShader.use();
         for (int i = 0; i < tumblers.size(); i++) {
             tumblerModel.at(i) = glm::translate(glm::mat4(1.0f), tumblerPosition.at(i));
@@ -108,7 +126,11 @@ void Display(GLFWwindow* window) {
     for (int i = 0; i < tumblers.size(); i++) {
         delete tumblers.at(i);
     }
+    for (int i = 0; i < spheres.size(); i++) {
+        delete spheres.at(i);
+    }
     tumblers.clear();
+    spheres.clear();
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
