@@ -202,6 +202,7 @@ void display::processInput(GLFWwindow* window)
             sphere->setVel(glm::vec3(0.0f));
             sphere->setPos(spherePosition.at(i));
             sphere->setColor(glm::vec3(1.0f));
+            sphere->setAlpha(1.0f);
         }
     }
         
