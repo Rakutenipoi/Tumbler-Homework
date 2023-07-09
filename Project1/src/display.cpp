@@ -8,6 +8,7 @@
 #include "../include/Camera.h"
 #include "../include/Sphere.h"
 #include "../include/PhysSphere.h"
+#include "../include/Light.h"
 
 #include <glm/gtc/random.hpp>
 
@@ -56,6 +57,10 @@ void Display(GLFWwindow* window) {
     Shader boxShader("box", "box");
     Shader modelShader("model", "model");
     Shader sphereShader("sphere", "sphere");
+
+    // 创建光源
+    Light pointLight(LIGHT_TYPE::POINT);
+    pointLight.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
     // 创建box对象
     // -----------
@@ -114,6 +119,8 @@ void Display(GLFWwindow* window) {
 
         // 绘制场景
         // --------
+        boxShader.use();
+        pointLight.apply(boxShader, camera);
         box.draw();
         // 绘制小球
         // --------

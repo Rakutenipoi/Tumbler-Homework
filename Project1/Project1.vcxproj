@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Env\glad\src\glad.c" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\PhysSphere.cpp" />
     <ClCompile Include="src\Sphere.cpp" />
     <ClCompile Include="src\Asset.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\Sphere.h" />
     <ClInclude Include="include\PhysSphere.h" />
+    <ClInclude Include="include\Light.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Fragment\box.fs" />
