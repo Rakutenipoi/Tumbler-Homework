@@ -125,6 +125,7 @@ void Display(GLFWwindow* window) {
         // ªÊ÷∆–°«Ú
         // --------
         sphereShader.use();
+        pointLight.apply(sphereShader, camera);
         for (int i = 0; i < spheres.size(); i++) {
             PhysSphere* sphere = spheres.at(i);
             sphere->setMatrix(sphere->update(deltaTime), view, projection);
