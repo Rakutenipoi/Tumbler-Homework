@@ -8,6 +8,12 @@ PhysSphere::PhysSphere(glm::vec3 position, float radius, int slices, int stacks,
 	this->velocity = glm::vec3(0.0f);
 	this->acceleration = glm::vec3(0.0f);
 	this->model = glm::translate(glm::mat4(1.0f), this->position);
+	this->aabb = new AABB(glm::vec3(-this->radius), glm::vec3(this->radius));
+}
+
+PhysSphere::~PhysSphere()
+{
+	delete[] this->aabb;
 }
 
 glm::mat4 PhysSphere::update(float deltaTime)

@@ -104,7 +104,7 @@ void Display(GLFWwindow* window) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // 着色器设置
-        // -----------
+        // ----------
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
@@ -134,6 +134,7 @@ void Display(GLFWwindow* window) {
         // 绘制不倒翁
         // ----------
         modelShader.use();
+        pointLight.apply(modelShader, camera);
         for (int i = 0; i < tumblers.size(); i++) {
             tumblerModel.at(i) = glm::translate(glm::mat4(1.0f), tumblerPosition.at(i));
             modelShader.setMatrix4("model", tumblerModel.at(i));
@@ -141,8 +142,7 @@ void Display(GLFWwindow* window) {
             modelShader.setMatrix4("projection", projection);
             tumblers.at(i)->Draw(modelShader);
         }
-        
-        
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -249,7 +249,7 @@ void display::scroll_callback(GLFWwindow* window, double xoffset, double yoffset
 void InitSphere()
 {
     for (int i = 0; i < spheres.size(); i++) {
-        glm::vec3 velocity = glm::ballRand(1.0f) * glm::linearRand(1.0f, 2.0f);
+        glm::vec3 velocity = glm::ballRand(1.0f) * glm::linearRand(0.5f, 1.5f);
         spheres.at(i)->setVel(velocity);
     }
 }

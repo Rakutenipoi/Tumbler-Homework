@@ -11,18 +11,20 @@
 #include "Plane.h"
 #include "Shader.h"
 #include "Sphere.h"
-
+#include "AABB.h"
 
 class PhysSphere : public Sphere
 {
 public:
     PhysSphere(glm::vec3 position, float radius, int slices, int stacks, float mass);
+    ~PhysSphere();
     glm::mat4 update(float deltaTime);
     void setPos(glm::vec3 value);
     void setVel(glm::vec3 value);
     void setAcc(glm::vec3 value);
 
     bool stop;
+    AABB* aabb;
 
 protected:
     glm::vec3 position;

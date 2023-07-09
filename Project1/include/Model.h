@@ -14,6 +14,7 @@
 
 #include "Shader.h"
 #include "Mesh.h"
+#include "AABB.h"
 
 class Model
 {
@@ -21,7 +22,12 @@ public:
     Model(char* path)
     {
         loadModel(path);
+        this->aabb = new AABB(glm::vec3(), glm::vec3());
     }
+    ~Model() {
+        delete[] this->aabb;
+    }
+    AABB* aabb;
     void Draw(Shader shader);
 
 protected:
