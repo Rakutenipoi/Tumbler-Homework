@@ -29,6 +29,7 @@ glm::mat4 PhysSphere::update(float deltaTime)
 		this->alpha = 0.0f;
 	}
 
+	// ±ß½çÅö×²ÅÐ¶Ï
 	if (!this->stop) {
 		if (abs(this->position.x) > bound) {
 			this->position.x = bound * this->position.x / abs(this->position.x);

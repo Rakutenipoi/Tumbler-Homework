@@ -42,7 +42,9 @@ vector<glm::vec3> spherePosition = {
     glm::vec3(-0.353572f, -0.262772f, 0.230868f),
 };
 
+// 资产
 vector<PhysSphere*> spheres;
+vector<PhysModel*> tumblers;
 
 // 渲染显示
 void Display(GLFWwindow* window) {
@@ -82,9 +84,9 @@ void Display(GLFWwindow* window) {
     // 读取模型
     // --------
     std::string modelPath = "Resource/Model/tumbler/tumbler.obj";
-    vector<PhysModel*> tumblers;
     for (int i = 0; i < 3; i++) {
         PhysModel* tumbler = new PhysModel(tumblerPosition.at(i), 1.0f, const_cast<char*>(modelPath.c_str()));
+        tumbler->setFric(0.05f);
         tumblers.push_back(tumbler);
     }
 
@@ -144,7 +146,6 @@ void Display(GLFWwindow* window) {
             tumblers.at(i)->Draw(modelShader);
         }
 
-
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -185,6 +186,13 @@ void display::processInput(GLFWwindow* window)
         if (First_R_Key) {
             First_R_Key = false;
             InitSphere();
+
+            for (int i = 0; i < tumblers.size(); i++) {
+                PhysModel* tumbler = tumblers.at(i);
+                tumbler->setVelAngle(glm::vec3(50.0f, 0.0f, 0.0f));
+                tumbler->setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+                tumbler->setAcc(glm::vec3(0.0f, 0.0f, 0.0f));
+            }
         }
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
@@ -197,6 +205,14 @@ void display::processInput(GLFWwindow* window)
                 sphere->stop = true;
                 sphere->setAcc(glm::vec3(0.0f, -0.98f, 0.0f));
                 sphere->setVel(glm::vec3(0.0f));
+            }
+
+            for (int i = 0; i < tumblers.size(); i++) {
+                PhysModel* tumbler = tumblers.at(i);
+                tumbler->stop = true;
+                tumbler->setAcc(glm::vec3(0.0f));
+                tumbler->setVel(glm::vec3(0.0f));
+                tumbler->setPos(tumblerPosition.at(i));
             }
         }
     }
@@ -212,6 +228,11 @@ void display::processInput(GLFWwindow* window)
             sphere->setPos(spherePosition.at(i));
             sphere->setColor(glm::vec3(1.0f));
             sphere->setAlpha(1.0f);
+        }
+
+        for (int i = 0; i < tumblers.size(); i++) {
+            PhysModel* tumbler = tumblers.at(i);
+            tumbler->stop = false;
         }
     }
         

@@ -23,14 +23,24 @@ public:
 	void setPos(glm::vec3 value);
 	void setVel(glm::vec3 value);
 	void setAcc(glm::vec3 value);
+	void setPosAngle(glm::vec3 value);
+	void setVelAngle(glm::vec3 value);
+	void setAccAngle(glm::vec3 value);
+	void setFric(float value);
 
 	AABB* aabb;
 	bool stop;
 
 protected:
 	glm::vec3 position;
+	glm::vec3 position_angle;
 	glm::vec3 velocity;
+	glm::vec3 velocity_angle;
 	glm::vec3 acceleration;
+	glm::vec3 acceleration_angle;
+
 	float mass;
+	float friction;
+	float friction_angle;
 };
 
