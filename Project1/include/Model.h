@@ -22,12 +22,11 @@ public:
     Model(char* path)
     {
         loadModel(path);
-        this->aabb = new AABB(glm::vec3(), glm::vec3());
     }
-    ~Model() {
-        delete[] this->aabb;
+    Model() {
+
     }
-    AABB* aabb;
+    void loadModel(std::string path);
     void Draw(Shader shader);
 
 protected:
@@ -37,7 +36,6 @@ protected:
     std::vector<Texture> textures_loaded;
 
     /*  º¯Êý   */
-    void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);

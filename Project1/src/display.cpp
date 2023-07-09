@@ -9,6 +9,7 @@
 #include "../include/Sphere.h"
 #include "../include/PhysSphere.h"
 #include "../include/Light.h"
+#include "../include/PhysModel.h"
 
 #include <glm/gtc/random.hpp>
 
@@ -81,9 +82,9 @@ void Display(GLFWwindow* window) {
     // ¶ÁÈ¡Ä£ÐÍ
     // --------
     std::string modelPath = "Resource/Model/tumbler/tumbler.obj";
-    vector<Model*> tumblers;
+    vector<PhysModel*> tumblers;
     for (int i = 0; i < 3; i++) {
-        Model* tumbler = new Model(const_cast<char*>(modelPath.c_str()));
+        PhysModel* tumbler = new PhysModel(tumblerPosition.at(i), 1.0f, const_cast<char*>(modelPath.c_str()));
         tumblers.push_back(tumbler);
     }
 
@@ -136,8 +137,8 @@ void Display(GLFWwindow* window) {
         modelShader.use();
         pointLight.apply(modelShader, camera);
         for (int i = 0; i < tumblers.size(); i++) {
-            tumblerModel.at(i) = glm::translate(glm::mat4(1.0f), tumblerPosition.at(i));
-            modelShader.setMatrix4("model", tumblerModel.at(i));
+            glm::mat4 _model = tumblers.at(i)->update(deltaTime);
+            modelShader.setMatrix4("model", _model);
             modelShader.setMatrix4("view", view);
             modelShader.setMatrix4("projection", projection);
             tumblers.at(i)->Draw(modelShader);
