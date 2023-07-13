@@ -27,6 +27,14 @@ public:
 	void setVelAngle(glm::vec3 value);
 	void setAccAngle(glm::vec3 value);
 	void setFric(float value);
+	
+	glm::vec3 getPos() {
+		return this->position;
+	};
+
+	glm::vec3 getPosAngle() {
+		return this->position_angle;
+	};
 
 	AABB* aabb;
 	bool stop;
@@ -42,5 +50,6 @@ protected:
 	float mass;
 	float friction;
 	float friction_angle;
+	float torque_length;
 };
 

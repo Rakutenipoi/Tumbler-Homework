@@ -24,6 +24,10 @@ public:
     void setVel(glm::vec3 value);
     void setAcc(glm::vec3 value);
 
+    glm::vec3 getPos() {
+        return this->position;
+    };
+
     bool stop;
     AABB* aabb;
 

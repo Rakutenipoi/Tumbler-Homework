@@ -1,7 +1,7 @@
 #include "../include/PhysModel.h"
 
 #define G 0.96f
-#define FRICTION_ANGLE 0.5f
+#define FRICTION_ANGLE 0.005f
 
 PhysModel::PhysModel(glm::vec3 position, float mass, char* path)
 {
@@ -11,15 +11,28 @@ PhysModel::PhysModel(glm::vec3 position, float mass, char* path)
 	this->position = position;
 	this->velocity = glm::vec3(0.0f);
 	this->acceleration = glm::vec3(0.0f);
+	this->position_angle = glm::vec3(0.0f);
+	this->velocity_angle = glm::vec3(0.0f);
+	this->acceleration_angle = glm::vec3(0.0f);
 	this->friction_angle = FRICTION_ANGLE;
+	this->torque_length = 10.0f;
+	this->mass = mass;
 }
 
 glm::mat4 PhysModel::update(float deltaTime)
 {
+	// 位置
+	this->velocity *= (1 - this->friction);
 	this->velocity += deltaTime * this->acceleration;
 	this->position += deltaTime * this->velocity;
+
+	// 角度
+	this->acceleration_angle = -glm::vec3(this->position_angle.x, 0.0f, this->position_angle.z) * this->torque_length;
+	this->position_angle = glm::vec3(this->position_angle.x * (1 - this->friction_angle), this->position_angle.y, this->position_angle.z * (1 - this->friction_angle));
+	this->velocity_angle = glm::vec3(this->velocity_angle.x, this->velocity_angle.y * (1 - this->friction_angle), this->velocity_angle.z);
 	this->velocity_angle += deltaTime * this->acceleration_angle;
 	this->position_angle += deltaTime * this->velocity_angle;
+	
 
 	// 边界值
 	float bound = 0.45f;

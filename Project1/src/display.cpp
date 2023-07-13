@@ -86,7 +86,7 @@ void Display(GLFWwindow* window) {
     std::string modelPath = "Resource/Model/tumbler/tumbler.obj";
     for (int i = 0; i < 3; i++) {
         PhysModel* tumbler = new PhysModel(tumblerPosition.at(i), 1.0f, const_cast<char*>(modelPath.c_str()));
-        tumbler->setFric(0.05f);
+        tumbler->setFric(0.01f);
         tumblers.push_back(tumbler);
     }
 
@@ -189,8 +189,9 @@ void display::processInput(GLFWwindow* window)
 
             for (int i = 0; i < tumblers.size(); i++) {
                 PhysModel* tumbler = tumblers.at(i);
-                tumbler->setVelAngle(glm::vec3(50.0f, 0.0f, 0.0f));
-                tumbler->setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+                //tumbler->setPosAngle(glm::vec3(50.0f, 0.0f, 50.0f));
+                //tumbler->setVelAngle(glm::vec3(0.0f, 200.0f, 0.0f));
+                //tumbler->setVel(glm::vec3(0.5f, 0.0f, 0.0f));
                 tumbler->setAcc(glm::vec3(0.0f, 0.0f, 0.0f));
             }
         }
