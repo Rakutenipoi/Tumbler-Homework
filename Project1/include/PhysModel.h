@@ -10,6 +10,8 @@
 #include <vector>
 
 #include "Model.h"
+#include "CylinderBox.h"
+
 
 class PhysModel : public Model
 {
@@ -37,6 +39,7 @@ public:
 	};
 
 	AABB* aabb;
+	CylinderBox* cylinder;
 	bool stop;
 
 protected:

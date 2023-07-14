@@ -10,6 +10,7 @@
 #include "../include/PhysSphere.h"
 #include "../include/Light.h"
 #include "../include/PhysModel.h"
+#include "../include/CylinderBox.h"
 
 #include <glm/gtc/random.hpp>
 
@@ -20,7 +21,7 @@ const unsigned int SCR_WIDTH = 1200;
 const unsigned int SCR_HEIGHT = 800;
 
 // 摄像机设置
-Camera camera(glm::vec3(0.0f, 0.0f, 1.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 1.8f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -153,43 +154,57 @@ void Display(GLFWwindow* window) {
             tumblers.at(i)->Draw(modelShader);
 
             // 计算碰撞
-            AABB* aabb = tumblers.at(i)->aabb;
+            CylinderBox* cylinder = tumblers.at(i)->cylinder;
+            cylinder->update(_model);
+            for (int j = 0; j < spheres.size(); j++) {
+                glm::vec3 hit_normal;
+                PhysSphere* sphere = spheres.at(j);
+                bool is_interact = cylinder->intersect(sphere, hit_normal);
+
+                if (is_interact) {
+                    spheres.at(j)->setColor(glm::vec3(1.0f, 0.0f, 0.0f));
+                    glm::vec3 velocitySphere = spheres.at(j)->getVel();
+                    spheres.at(j)->setVel(velocitySphere - 2.0f * glm::dot(hit_normal, velocitySphere) * hit_normal);
+                }
+            }
+            /*AABB* aabb = tumblers.at(i)->aabb;
             
             aabb->update(_model);
             for (int j = 0; j < spheres.size(); j++) {
                 bool is_interact = aabb->intersect(spheres.at(j)->aabb);
                 if (is_interact) {
                     spheres.at(j)->setColor(glm::vec3(1.0f, 0.0f, 0.0f));
-                    //cout << "bound" << endl;
+                    glm::vec3 boundNormal = glm::normalize(spheres.at(j)->getPos() - tumblers.at(i)->getPos());
+                    glm::vec3 velocitySphere = spheres.at(j)->getVel();
+                    spheres.at(j)->setVel(velocitySphere - 2.0f * glm::dot(boundNormal, velocitySphere) * boundNormal);
                 }
-            }
+            }*/
         }
 
         // aabb可视化
-        /*lineShader.use();
+        lineShader.use();
         for (int i = 0; i < tumblers.size(); i++) {
-            AABB* aabb = tumblers.at(i)->aabb;
+            CylinderBox* cylinder = tumblers.at(i)->cylinder;
 
-            glm::vec3 min = aabb->getMinPoint();
-            glm::vec3 max = aabb->getMaxPoint();
+            glm::vec3* axis = cylinder->getPhysAxis();
+            glm::vec3 min = axis[0];
+            glm::vec3 max = axis[1];
 
-            glm::mat4 _model = aabb->update(tumblerModel.at(i));
-
-            lineShader.setMatrix4("model", _model);
+            lineShader.setMatrix4("model", glm::mat4(1.0f));
             lineShader.setMatrix4("view", view);
             lineShader.setMatrix4("projection", projection);
 
             vector<glm::vec3> pts = { min, max };
 
-            lineSegment(min, max, glm::vec3(1.0f, 0.0f, 1.0f), lineShader);
-            pointsDraw(pts, glm::vec3(1.0f, 0.0f, 1.0f), lineShader);
+            lineSegment(min, max, glm::vec3(1.0f, 1.0f, 0.0f), lineShader);
+            pointsDraw(pts, glm::vec3(1.0f, 1.0f, 0.0f), lineShader);
         }
-        lineShader.use();
+        /*lineShader.use();
         for (int i = 0; i < spheres.size(); i++) {
             AABB* aabb = spheres.at(i)->aabb;
             
-            glm::vec3 min = aabb->getMinPoint();
-            glm::vec3 max = aabb->getMaxPoint();
+            glm::vec3 min = aabb->getMin();
+            glm::vec3 max = aabb->getMax();
 
             glm::mat4 _model = aabb->update(spheres.at(i)->getMat(MATRIX_TYPE::MODEL));
 
@@ -247,8 +262,8 @@ void display::processInput(GLFWwindow* window)
             for (int i = 0; i < tumblers.size(); i++) {
                 PhysModel* tumbler = tumblers.at(i);
                 //tumbler->setPosAngle(glm::vec3(50.0f, 0.0f, 50.0f));
-                tumbler->setVelAngle(glm::vec3(50.0f, 200.0f, 50.0f));
-                tumbler->setVel(glm::vec3(0.5f, 0.0f, 0.0f));
+                //tumbler->setVelAngle(glm::vec3(50.0f, 200.0f, 50.0f));
+                //tumbler->setVel(glm::vec3(0.5f, 0.0f, 0.0f));
                 tumbler->setAcc(glm::vec3(0.0f, 0.0f, 0.0f));
             }
         }

@@ -23,6 +23,10 @@ public:
 	void init(float radius, int slices, int stacks);
 	void setAlpha(float value);
 
+	float getRadius() {
+		return this->radius;
+	}
+
 protected:
 	std::vector<float> vertices;
 	std::vector<float> normals;

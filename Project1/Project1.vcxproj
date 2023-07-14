@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Env\glad\src\glad.c" />
+    <ClCompile Include="src\CylinderBox.cpp" />
     <ClCompile Include="src\PhysModel.cpp" />
     <ClCompile Include="src\AABB.cpp" />
     <ClCompile Include="src\Light.cpp" />
@@ -164,6 +165,7 @@
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\CylinderBox.h" />
     <ClInclude Include="include\AABB.h" />
     <ClInclude Include="include\Asset.h" />
     <ClInclude Include="include\Camera.h" />

@@ -15,6 +15,8 @@ public:
 	bool intersect(AABB* other);
 	glm::vec3 getMinPoint();
 	glm::vec3 getMaxPoint();
+	glm::vec3 getMin();
+	glm::vec3 getMax();
 	glm::vec3 getCenter();
 	void setCenter(glm::vec3 value);
 	glm::mat4 update(glm::mat4 model);

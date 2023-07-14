@@ -6,7 +6,12 @@
 PhysModel::PhysModel(glm::vec3 position, float mass, char* path)
 {
 	this->loadModel(path);
-	this->aabb = new AABB(glm::vec3(-0.03f), glm::vec3(0.03f, 0.1f, 0.03f)); // 0.1, 0.215, 0.1
+	this->aabb = new AABB(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.107f, 0.0f)); // 0.1, 0.215, 0.1
+	this->cylinder = new CylinderBox(glm::vec3(0.0f, -0.05f, 0.0f), glm::vec3(0.0f, 0.107f, 0.0f));
+	this->cylinder->setRadiusDown(0.05f);
+	this->cylinder->setRadiusUp(0.025f);
+	glm::vec3 centerCylinder[2] = { glm::vec3(0.0f), glm::vec3(0.0f, 0.082f, 0.0f) };
+	this->cylinder->setCenter(centerCylinder);
 	this->stop = false;
 	this->position = position;
 	this->velocity = glm::vec3(0.0f);

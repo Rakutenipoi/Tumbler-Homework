@@ -27,6 +27,9 @@ public:
     glm::vec3 getPos() {
         return this->position;
     };
+    glm::vec3 getVel() {
+        return this->velocity;
+    }
 
     bool stop;
     AABB* aabb;

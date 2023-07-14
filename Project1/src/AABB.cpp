@@ -38,6 +38,16 @@ glm::vec3 AABB::getMaxPoint()
 	return this->physMaxPoint;
 }
 
+glm::vec3 AABB::getMin()
+{
+	return this->minPoint;
+}
+
+glm::vec3 AABB::getMax()
+{
+	return this->maxPoint;
+}
+
 glm::vec3 AABB::getCenter()
 {
 	return this->center;
