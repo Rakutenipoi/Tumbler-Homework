@@ -28,6 +28,7 @@ public:
 	void setMatrix(glm::mat4 model, glm::mat4 view, glm::mat4 projection);
 	void setData(float* vertices, unsigned int* indices, int numVertices, int numIndices);
 	void draw(glm::vec3 color);
+	glm::mat4 getMat(MATRIX_TYPE type);
 
 protected:
 	float* vertices;

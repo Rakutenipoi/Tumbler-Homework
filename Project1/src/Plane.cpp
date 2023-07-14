@@ -71,3 +71,22 @@ void Plane::draw(glm::vec3 color)
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
+
+glm::mat4 Plane::getMat(MATRIX_TYPE type)
+{
+	glm::mat4 ret = glm::mat4(1.0f);
+
+	switch (type) {
+		case MATRIX_TYPE::MODEL:
+			ret = this->model;
+			break;
+		case MATRIX_TYPE::VIEW:
+			ret = this->view;
+			break;
+		case MATRIX_TYPE::PROJECTION:
+			ret = this->projection;
+			break;
+	}
+
+	return ret;
+}
