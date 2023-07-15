@@ -13,13 +13,13 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 	float radiusSphere = sphere->getRadius();
 
 	glm::vec3 axisVec = this->physAxis[1] - this->physAxis[0];
+	glm::vec3 down2Point = position - this->physAxis[0];
 
 	// 计算小球中心在中轴线上的投影
-	glm::vec3 vectorInAxis = this->countVectorInAxis(position);
-	float shadowLength = glm::dot(vectorInAxis, glm::normalize(axisVec));
+	float shadowLength = glm::dot(glm::normalize(axisVec), down2Point);
 
 	// 计算小球中心与中轴线的距离
-	float distance = this->countDistance(position) * 2;
+	float distance = sqrt(pow(glm::length(down2Point), 2) - pow(shadowLength, 2));
 
 	glm::vec3 hit_normal;
 
@@ -53,7 +53,7 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 			return false;
 		}
 	} 
-	else if (shadowLength <= axisVec.length() + radiusSphere) {
+	else if (shadowLength <= glm::length(axisVec) + radiusSphere) {
 		// UP
 		float distanceCenter = glm::length(position - this->physCenter[1]);
 

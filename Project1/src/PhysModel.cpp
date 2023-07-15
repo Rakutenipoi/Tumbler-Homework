@@ -61,7 +61,7 @@ glm::mat4 PhysModel::update(float deltaTime)
 	model = glm::rotate(model, glm::radians(this->position_angle.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(this->position_angle.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(this->position_angle.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, glm::vec3(1.5f));
+	model = glm::scale(model, glm::vec3(1.0f));
 	
 	return model;
 }

@@ -9,8 +9,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // …Ë÷√
 // ----
-const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_WIDTH = 1800;
+const unsigned int SCR_HEIGHT = 1200;
 
 enum MODE
 {

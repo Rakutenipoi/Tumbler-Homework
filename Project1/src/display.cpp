@@ -169,7 +169,7 @@ void Display(GLFWwindow* window) {
                     float velocitySphereValue = glm::length(velocitySphere);
                     // Åö×²Æ½ÒÆ
                     glm::vec3 velocityTranslate = glm::vec3(hitNormal.x, 0.0f, hitNormal.z);
-                    float velocityTranslateRate = 0.3f;
+                    float velocityTranslateRate = 0.2f;
                     tumblers.at(i)->addValue(-velocityTranslate * velocityTranslateRate * velocitySphereValue, PHYS_PARAM_TYPE::VELOCITY);
                     // Åö×²Ðý×ª
                     float velocityRotateRate = 50.0f;
@@ -184,7 +184,7 @@ void Display(GLFWwindow* window) {
             for (int j = 1; j < 3; j++) {
                 int idx = (i + j) % 3;
                 glm::vec3 hitNormal;
-                bool is_interact = cylinder->intersect(tumblers.at(idx)->getPos(), tumblers.at(idx)->cylinder->getRadiusDown(), hitNormal);
+                bool is_interact = cylinder->intersect(tumblers.at(idx)->cylinder->getPhysAxis()[0], tumblers.at(idx)->cylinder->getRadiusDown(), hitNormal);
 
                 if (is_interact) {
                     glm::vec3 velocityTumbler = tumblers.at(i)->getVel();
@@ -301,6 +301,9 @@ void display::processInput(GLFWwindow* window)
                 tumbler->setAcc(glm::vec3(0.0f));
                 tumbler->setVel(glm::vec3(0.0f));
                 tumbler->setPos(tumblerPosition.at(i));
+                tumbler->setPosAngle(glm::vec3(0.0f));
+                tumbler->setVelAngle(glm::vec3(0.0f));
+                tumbler->setAccAngle(glm::vec3(0.0f));
             }
         }
     }
@@ -346,7 +349,7 @@ void display::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    //camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
