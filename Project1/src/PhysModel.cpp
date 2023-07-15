@@ -61,6 +61,7 @@ glm::mat4 PhysModel::update(float deltaTime)
 	model = glm::rotate(model, glm::radians(this->position_angle.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(this->position_angle.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(this->position_angle.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(1.5f));
 	
 	return model;
 }
@@ -99,3 +100,37 @@ void PhysModel::setFric(float value)
 {
 	this->friction = value;
 }
+
+void PhysModel::apply(glm::vec3 direction, float value)
+{
+
+}
+
+void PhysModel::addValue(glm::vec3 value, PHYS_PARAM_TYPE type)
+{
+	switch (type)
+	{
+	case PHYS_PARAM_TYPE::POSITION:
+		this->position += value;
+		break;
+	case PHYS_PARAM_TYPE::VELOCITY:
+		this->velocity += value;
+		break;
+	case PHYS_PARAM_TYPE::ACCELERATION:
+		this->acceleration += value;
+		break;
+	case PHYS_PARAM_TYPE::ANGLE_POSITION:
+		this->position_angle += value;
+		break;
+	case PHYS_PARAM_TYPE::ANGLE_VELOCITY:
+		this->velocity_angle += value;
+		break;
+	case PHYS_PARAM_TYPE::ANGLE_ACCELERATION:
+		this->acceleration_angle += value;
+		break;
+	default:
+		break;
+	}
+}
+
+

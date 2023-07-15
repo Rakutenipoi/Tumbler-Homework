@@ -12,8 +12,6 @@
 #include "../include/PhysModel.h"
 #include "../include/CylinderBox.h"
 
-#include <glm/gtc/random.hpp>
-
 using namespace display;
 
 // 分辨率设置
@@ -77,7 +75,7 @@ void Display(GLFWwindow* window) {
 
     // 创建球体对象
     // ------------
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < spherePosition.size(); i++) {
         PhysSphere* sphere = new PhysSphere(spherePosition.at(i), 0.01f, 30, 30, 1.0f);
         sphere->setAcc(glm::vec3(0.0f, -0.0f, 0.0f));
         sphere->setColor(glm::vec3(1.0f));
@@ -157,32 +155,49 @@ void Display(GLFWwindow* window) {
             CylinderBox* cylinder = tumblers.at(i)->cylinder;
             cylinder->update(_model);
             for (int j = 0; j < spheres.size(); j++) {
-                glm::vec3 hit_normal;
+                glm::vec4 hit_normal;
                 PhysSphere* sphere = spheres.at(j);
                 bool is_interact = cylinder->intersect(sphere, hit_normal);
 
                 if (is_interact) {
+                    glm::vec3 hitNormal = glm::vec3(hit_normal);
+                    // 小球变色
                     spheres.at(j)->setColor(glm::vec3(1.0f, 0.0f, 0.0f));
+                    // 小球反弹
                     glm::vec3 velocitySphere = spheres.at(j)->getVel();
-                    spheres.at(j)->setVel(velocitySphere - 2.0f * glm::dot(hit_normal, velocitySphere) * hit_normal);
+                    spheres.at(j)->setVel(velocitySphere - 2.0f * glm::dot(hitNormal, velocitySphere) * hitNormal);
+                    float velocitySphereValue = glm::length(velocitySphere);
+                    // 碰撞平移
+                    glm::vec3 velocityTranslate = glm::vec3(hitNormal.x, 0.0f, hitNormal.z);
+                    float velocityTranslateRate = 0.3f;
+                    tumblers.at(i)->addValue(-velocityTranslate * velocityTranslateRate * velocitySphereValue, PHYS_PARAM_TYPE::VELOCITY);
+                    // 碰撞旋转
+                    float velocityRotateRate = 50.0f;
+                    float volocityRotate = 1 - glm::dot(glm::normalize(spheres.at(j)->getVel()), -velocityTranslate);
+                    tumblers.at(i)->addValue(glm::vec3(0.0f, volocityRotate * velocityRotateRate * velocitySphereValue, 0.0f), PHYS_PARAM_TYPE::ANGLE_VELOCITY);
+                    // 碰撞摇摆
+                    float velocitySwingRate = 100.0f;
+                    glm::vec3 velocitySwing = glm::vec3(-hitNormal.z, 0.0f, hitNormal.x) * hit_normal.w * velocitySwingRate * velocitySphereValue;
+                    tumblers.at(i)->addValue(velocitySwing, PHYS_PARAM_TYPE::ANGLE_VELOCITY);
                 }
             }
-            /*AABB* aabb = tumblers.at(i)->aabb;
-            
-            aabb->update(_model);
-            for (int j = 0; j < spheres.size(); j++) {
-                bool is_interact = aabb->intersect(spheres.at(j)->aabb);
+            for (int j = 1; j < 3; j++) {
+                int idx = (i + j) % 3;
+                glm::vec3 hitNormal;
+                bool is_interact = cylinder->intersect(tumblers.at(idx)->getPos(), tumblers.at(idx)->cylinder->getRadiusDown(), hitNormal);
+
                 if (is_interact) {
-                    spheres.at(j)->setColor(glm::vec3(1.0f, 0.0f, 0.0f));
-                    glm::vec3 boundNormal = glm::normalize(spheres.at(j)->getPos() - tumblers.at(i)->getPos());
-                    glm::vec3 velocitySphere = spheres.at(j)->getVel();
-                    spheres.at(j)->setVel(velocitySphere - 2.0f * glm::dot(boundNormal, velocitySphere) * boundNormal);
+                    glm::vec3 velocityTumbler = tumblers.at(i)->getVel();
+                    tumblers.at(i)->setVel(velocityTumbler + 2.0f * glm::dot(-hitNormal, velocityTumbler) * hitNormal);
+                    velocityTumbler = tumblers.at(idx)->getVel();
+                    tumblers.at(idx)->setVel(velocityTumbler - 2.0f * glm::dot(hitNormal, velocityTumbler) * hitNormal);
                 }
-            }*/
+            }
+
         }
 
         // aabb可视化
-        lineShader.use();
+        /*lineShader.use();
         for (int i = 0; i < tumblers.size(); i++) {
             CylinderBox* cylinder = tumblers.at(i)->cylinder;
 
@@ -198,7 +213,7 @@ void Display(GLFWwindow* window) {
 
             lineSegment(min, max, glm::vec3(1.0f, 1.0f, 0.0f), lineShader);
             pointsDraw(pts, glm::vec3(1.0f, 1.0f, 0.0f), lineShader);
-        }
+        }*/
         /*lineShader.use();
         for (int i = 0; i < spheres.size(); i++) {
             AABB* aabb = spheres.at(i)->aabb;
@@ -261,9 +276,9 @@ void display::processInput(GLFWwindow* window)
 
             for (int i = 0; i < tumblers.size(); i++) {
                 PhysModel* tumbler = tumblers.at(i);
-                //tumbler->setPosAngle(glm::vec3(50.0f, 0.0f, 50.0f));
+                //tumbler->setPosAngle(glm::vec3(0.0f, 0.0f, 0.0f));
                 //tumbler->setVelAngle(glm::vec3(50.0f, 200.0f, 50.0f));
-                //tumbler->setVel(glm::vec3(0.5f, 0.0f, 0.0f));
+                //tumbler->setVel(glm::vec3(0.5f, 0.0f, 0.5f));
                 tumbler->setAcc(glm::vec3(0.0f, 0.0f, 0.0f));
             }
         }
@@ -343,8 +358,20 @@ void display::scroll_callback(GLFWwindow* window, double xoffset, double yoffset
 
 void InitSphere()
 {
+    std::srand(static_cast<unsigned int>(std::time(0)));
+    
     for (int i = 0; i < spheres.size(); i++) {
-        glm::vec3 velocity = glm::ballRand(1.0f) * glm::linearRand(0.5f, 1.5f);
+        glm::vec3 velocity = glm::vec3(generateRandomNumber(), generateRandomNumber(), generateRandomNumber())
+            * glm::linearRand(0.5f, 1.0f);
         spheres.at(i)->setVel(velocity);
     }
+}
+
+float generateRandomNumber()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0, 1.0);
+
+    return dis(gen);
 }

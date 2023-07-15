@@ -22,7 +22,8 @@ class CylinderBox
 {
 public:
 	CylinderBox(glm::vec3 axisStart, glm::vec3 axisEnd);
-	bool intersect(PhysSphere* sphere, glm::vec3& hit_normal);
+	bool intersect(PhysSphere* sphere, glm::vec4& hitNormal);
+	bool intersect(glm::vec3 position, float radius, glm::vec3& hitNormal);
 	void update(glm::mat4 model);
 	glm::vec3* getPhysAxis() {
 		return this->physAxis;
@@ -35,10 +36,10 @@ public:
 		this->center[1] = center[1];
 	}
 	void setRadiusDown(float radius) {
-		this->radius_down = radius;
+		this->radius_d = radius;
 	}
 	void setRadiusUp(float radius) {
-		this->radius_up = radius;
+		this->radius_u = radius;
 	}
 	float getRadiusDown() {
 		return this->radius_down;
@@ -60,5 +61,9 @@ protected:
 	glm::vec3 physCenter[2];
 	float radius_down;
 	float radius_up;
+	float radius_d;
+	float radius_u;
+	float centerLength;
+	float axisLength;
 };
 

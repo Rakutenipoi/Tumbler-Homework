@@ -12,6 +12,15 @@
 #include "Model.h"
 #include "CylinderBox.h"
 
+enum class PHYS_PARAM_TYPE
+{
+	POSITION,
+	VELOCITY,
+	ACCELERATION,
+	ANGLE_POSITION,
+	ANGLE_VELOCITY,
+	ANGLE_ACCELERATION
+};
 
 class PhysModel : public Model
 {
@@ -29,6 +38,8 @@ public:
 	void setVelAngle(glm::vec3 value);
 	void setAccAngle(glm::vec3 value);
 	void setFric(float value);
+	void apply(glm::vec3 direction, float value);
+	void addValue(glm::vec3 value, PHYS_PARAM_TYPE type);
 	
 	glm::vec3 getPos() {
 		return this->position;
@@ -36,6 +47,10 @@ public:
 
 	glm::vec3 getPosAngle() {
 		return this->position_angle;
+	};
+
+	glm::vec3 getVel() {
+		return this->velocity;
 	};
 
 	AABB* aabb;

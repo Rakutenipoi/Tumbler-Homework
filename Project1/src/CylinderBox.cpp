@@ -6,7 +6,7 @@ CylinderBox::CylinderBox(glm::vec3 axisStart, glm::vec3 axisEnd)
 	this->axis[1] = axisEnd;
 }
 
-bool CylinderBox::intersect(PhysSphere* sphere, glm::vec3 &hit_normal)
+bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 {
 	// 小球中心坐标和半径
 	glm::vec3 position = sphere->getPos();
@@ -19,7 +19,9 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec3 &hit_normal)
 	float shadowLength = glm::dot(vectorInAxis, glm::normalize(axisVec));
 
 	// 计算小球中心与中轴线的距离
-	float distance = this->countDistance(position);
+	float distance = this->countDistance(position) * 2;
+
+	glm::vec3 hit_normal;
 
 	if (shadowLength <= -radiusSphere) {
 		return false;
@@ -30,6 +32,7 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec3 &hit_normal)
 
 		if (distanceCenter <= radiusSphere + radius_down) {
 			hit_normal = glm::normalize(position - this->physCenter[0]);
+			hitNormal = glm::vec4(hit_normal, -0.5f);
 			return true;
 		}
 		else {
@@ -38,10 +41,12 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec3 &hit_normal)
 	} 
 	else if (shadowLength <= glm::length(this->physCenter[1] - this->physAxis[0])) {
 		// MIDDLE
-		float radiusMiddle = this->radius_down + this->countInterpolateRate(shadowLength) * (this->radius_up - this->radius_down);
+		float interpolateRate = this->countInterpolateRate(shadowLength);
+		float radiusMiddle = this->radius_down + interpolateRate * (this->radius_up - this->radius_down);
 		
 		if (distance <= radiusMiddle + radiusSphere) {
 			hit_normal = glm::normalize(position - (this->physAxis[0] + shadowLength * glm::normalize(axisVec)));
+			hitNormal = glm::vec4(hit_normal, interpolateRate + 0.3f);
 			return true;
 		} 
 		else {
@@ -54,6 +59,7 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec3 &hit_normal)
 
 		if (distanceCenter <= radiusSphere + radius_up) {
 			hit_normal = glm::normalize(position - this->physCenter[1]);
+			hitNormal = glm::vec4(hit_normal, 1.3f);
 			return true;
 		}
 		else {
@@ -66,12 +72,29 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec3 &hit_normal)
 
 }
 
+bool CylinderBox::intersect(glm::vec3 position, float radius, glm::vec3& hitNormal)
+{
+	glm::vec2 point2point = glm::vec2(position.x, position.z) - glm::vec2(this->physAxis[0].x, this->physAxis[0].z);
+	float distance = glm::length(point2point);
+
+	if (distance <= this->radius_down + radius) {
+		hitNormal = glm::normalize(glm::vec3(point2point.x, 0.0f, point2point.y));
+		return true;
+	}
+
+	return false;
+}
+
 void CylinderBox::update(glm::mat4 model)
 {
 	this->physAxis[0] = glm::vec3(model * glm::vec4(this->axis[0], 1.0f));
 	this->physAxis[1] = glm::vec3(model * glm::vec4(this->axis[1], 1.0f));
 	this->physCenter[0] = glm::vec3(model * glm::vec4(this->center[0], 1.0f));
 	this->physCenter[1] = glm::vec3(model * glm::vec4(this->center[1], 1.0f));
+	this->radius_down = glm::length(this->physCenter[0] - this->physAxis[0]);
+	this->radius_up = glm::length(this->physAxis[1] - this->physCenter[1]);
+	this->axisLength = glm::length(this->physAxis[1] - this->physAxis[0]);
+	this->centerLength = glm::length(this->physCenter[1] - this->physCenter[0]);
 }
 
 float CylinderBox::countDistance(glm::vec3 point)
@@ -92,7 +115,7 @@ glm::vec3 CylinderBox::countVectorInAxis(glm::vec3 point)
 
 float CylinderBox::countInterpolateRate(float length)
 {
-	return glm::length((length - this->radius_down) / (this->center[1] - this->center[0]));
+	return (length - this->radius_down) / this->centerLength;
 }
 
 

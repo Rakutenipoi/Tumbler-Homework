@@ -8,6 +8,10 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <ctime>
+#include <random>
+#include <glm/gtc/random.hpp>
+
 
 namespace display{
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -17,5 +21,5 @@ namespace display{
 
 void Display(GLFWwindow* window);
 void InitSphere();
-
+float generateRandomNumber();
 
