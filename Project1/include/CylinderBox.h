@@ -41,11 +41,14 @@ public:
 	void setRadiusUp(float radius) {
 		this->radius_u = radius;
 	}
+	void setScale(float scale) {
+		this->scale = scale;
+	}
 	float getRadiusDown() {
-		return this->radius_down;
+		return this->radius_d;
 	}
 	float getRadiusUp() {
-		return this->radius_up;
+		return this->radius_u;
 	}
 	// 计算小球中心与中轴线的距离
 	float countDistance(glm::vec3 point);
@@ -65,5 +68,6 @@ protected:
 	float radius_u;
 	float centerLength;
 	float axisLength;
+	float scale;
 };
 

@@ -22,6 +22,8 @@ PhysModel::PhysModel(glm::vec3 position, float mass, char* path)
 	this->friction_angle = FRICTION_ANGLE;
 	this->torque_length = 10.0f;
 	this->mass = mass;
+	this->scale = 1.5f;
+	this->cylinder->setScale(this->scale);
 }
 
 glm::mat4 PhysModel::update(float deltaTime)
@@ -31,16 +33,45 @@ glm::mat4 PhysModel::update(float deltaTime)
 	this->velocity += deltaTime * this->acceleration;
 	this->position += deltaTime * this->velocity;
 
-	// ½Ç¶È
+	
+	// Ë¥¼õ
+	float threadAngle_x = 1.0f;
+	float threadAngle_z = 1.0f;
+	float upThread = 70.0f;
+	float downThread = 30.0f;
+	float rotateThread = 200.0f;
+	if (abs(this->position_angle.x) >= upThread) {
+		threadAngle_x = 0.0f;
+	}
+	else if (abs(this->position_angle.x) >= downThread) {
+		threadAngle_x = ((abs(this->position_angle.x) - downThread) / (upThread - downThread) + 1) / 2;
+	}
+	else {
+		threadAngle_x = 1.0f;
+	}
+
+	if (abs(this->position_angle.z) >= upThread) {
+		threadAngle_z = 0.0f;
+	}
+	else if (abs(this->position_angle.z) >= downThread) {
+		threadAngle_z = ((abs(this->position_angle.z) - downThread) / (upThread - downThread) + 1) / 2;
+	}
+	else {
+		threadAngle_z = 1.0f;
+	}
+
 	this->acceleration_angle = -glm::vec3(this->position_angle.x, 0.0f, this->position_angle.z) * this->torque_length;
 	this->position_angle = glm::vec3(this->position_angle.x * (1 - this->friction_angle), this->position_angle.y, this->position_angle.z * (1 - this->friction_angle));
-	this->velocity_angle = glm::vec3(this->velocity_angle.x, this->velocity_angle.y * (1 - this->friction_angle), this->velocity_angle.z);
+	this->velocity_angle = glm::vec3(this->velocity_angle.x * threadAngle_x, glm::clamp(this->velocity_angle.y * (1 - this->friction_angle), -rotateThread, rotateThread)
+		, this->velocity_angle.z * threadAngle_z);
+
+	// ½Ç¶È
 	this->velocity_angle += deltaTime * this->acceleration_angle;
 	this->position_angle += deltaTime * this->velocity_angle;
 	
 
 	// ±ß½çÖµ
-	float bound = 0.45f;
+	float bound = 0.5f - this->scale * this->cylinder->getRadiusDown();
 
 	// ±ß½çÅö×²ÅÐ¶Ï
 	if (abs(this->position.x) > bound) {
@@ -61,7 +92,7 @@ glm::mat4 PhysModel::update(float deltaTime)
 	model = glm::rotate(model, glm::radians(this->position_angle.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(this->position_angle.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(this->position_angle.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, glm::vec3(1.0f));
+	model = glm::scale(model, glm::vec3(this->scale));
 	
 	return model;
 }

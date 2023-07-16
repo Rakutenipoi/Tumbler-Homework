@@ -52,6 +52,9 @@ public:
 	glm::vec3 getVel() {
 		return this->velocity;
 	};
+	float getScale() {
+		return this->scale;
+	}
 
 	AABB* aabb;
 	CylinderBox* cylinder;
@@ -69,5 +72,6 @@ protected:
 	float friction;
 	float friction_angle;
 	float torque_length;
+	float scale;
 };
 

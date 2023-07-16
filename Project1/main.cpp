@@ -41,6 +41,8 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // 设置窗口的显示位置
+    glfwSetWindowPos(window, 200, 100);
 
     // 加载glad
     // ---------

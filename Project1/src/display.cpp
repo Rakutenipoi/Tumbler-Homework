@@ -30,15 +30,16 @@ float lastFrame = 0.0f; // 上一帧的时间
 // 按键设置
 bool First_R_Key = true;
 bool First_S_Key = true;
+bool Ignore_Bound = false;
 
 // 物体位置参数
     // ------------
-vector<glm::vec3> tumblerPosition = { glm::vec3(0.3f, -0.45f, 0.2f), glm::vec3(-0.3f, -0.45f, -0.3f), glm::vec3(0.0f, -0.45f, 0.0f) };
+vector<glm::vec3> tumblerPosition = { glm::vec3(0.3f, -0.425f, 0.2f), glm::vec3(-0.3f, -0.425f, -0.3f), glm::vec3(0.0f, -0.425f, 0.0f) };
 vector<glm::vec3> spherePosition = {
     glm::vec3(0.0907949f, -0.399212f, -0.208774f), glm::vec3(-0.0186592f, -0.202571f, -0.213606f), glm::vec3(-0.0883394f, -0.287907f, -0.383346f),
     glm::vec3(-0.273077f, 0.264156f, -0.181063f), glm::vec3(0.0192792f, 0.310677f, 0.360827f), glm::vec3(-0.252072f, 0.309068f, 0.0559487f),
     glm::vec3(-0.302903f, -0.0365484f, 0.308075f), glm::vec3(-0.198631f, -0.303337f, 0.315939f), glm::vec3(-0.347168f, -0.209269f, -0.343179f),
-    glm::vec3(-0.353572f, -0.262772f, 0.230868f),
+    glm::vec3(-0.353572f, -0.262772f, 0.230868f), 
 };
 
 // 资产
@@ -54,7 +55,7 @@ void Display(GLFWwindow* window) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glPointSize(5.0f);
+    glPointSize(10.0f);
 
     // 创建着色器
     // ----------
@@ -135,7 +136,7 @@ void Display(GLFWwindow* window) {
             PhysSphere* sphere = spheres.at(i);
             glm::mat4 _model = sphere->update(deltaTime);
             sphere->setMatrix(_model, view, projection);
-            sphere->aabb->update(_model);
+            //sphere->aabb->update(_model);
             sphere->draw();
         }
         // 绘制不倒翁
@@ -150,52 +151,63 @@ void Display(GLFWwindow* window) {
             modelShader.setMatrix4("view", view);
             modelShader.setMatrix4("projection", projection);
             tumblers.at(i)->Draw(modelShader);
-
-            // 计算碰撞
+   
             CylinderBox* cylinder = tumblers.at(i)->cylinder;
             cylinder->update(_model);
-            for (int j = 0; j < spheres.size(); j++) {
-                glm::vec4 hit_normal;
-                PhysSphere* sphere = spheres.at(j);
-                bool is_interact = cylinder->intersect(sphere, hit_normal);
-
-                if (is_interact) {
-                    glm::vec3 hitNormal = glm::vec3(hit_normal);
-                    // 小球变色
-                    spheres.at(j)->setColor(glm::vec3(1.0f, 0.0f, 0.0f));
-                    // 小球反弹
-                    glm::vec3 velocitySphere = spheres.at(j)->getVel();
-                    spheres.at(j)->setVel(velocitySphere - 2.0f * glm::dot(hitNormal, velocitySphere) * hitNormal);
-                    float velocitySphereValue = glm::length(velocitySphere);
-                    // 碰撞平移
-                    glm::vec3 velocityTranslate = glm::vec3(hitNormal.x, 0.0f, hitNormal.z);
-                    float velocityTranslateRate = 0.2f;
-                    tumblers.at(i)->addValue(-velocityTranslate * velocityTranslateRate * velocitySphereValue, PHYS_PARAM_TYPE::VELOCITY);
-                    // 碰撞旋转
-                    float velocityRotateRate = 50.0f;
-                    float volocityRotate = 1 - glm::dot(glm::normalize(spheres.at(j)->getVel()), -velocityTranslate);
-                    tumblers.at(i)->addValue(glm::vec3(0.0f, volocityRotate * velocityRotateRate * velocitySphereValue, 0.0f), PHYS_PARAM_TYPE::ANGLE_VELOCITY);
-                    // 碰撞摇摆
-                    float velocitySwingRate = 100.0f;
-                    glm::vec3 velocitySwing = glm::vec3(-hitNormal.z, 0.0f, hitNormal.x) * hit_normal.w * velocitySwingRate * velocitySphereValue;
-                    tumblers.at(i)->addValue(velocitySwing, PHYS_PARAM_TYPE::ANGLE_VELOCITY);
-                }
-            }
-            for (int j = 1; j < 3; j++) {
-                int idx = (i + j) % 3;
-                glm::vec3 hitNormal;
-                bool is_interact = cylinder->intersect(tumblers.at(idx)->cylinder->getPhysAxis()[0], tumblers.at(idx)->cylinder->getRadiusDown(), hitNormal);
-
-                if (is_interact) {
-                    glm::vec3 velocityTumbler = tumblers.at(i)->getVel();
-                    tumblers.at(i)->setVel(velocityTumbler + 2.0f * glm::dot(-hitNormal, velocityTumbler) * hitNormal);
-                    velocityTumbler = tumblers.at(idx)->getVel();
-                    tumblers.at(idx)->setVel(velocityTumbler - 2.0f * glm::dot(hitNormal, velocityTumbler) * hitNormal);
-                }
-            }
-
         }
 
+        // 计算碰撞
+        if (!Ignore_Bound) {
+            for (int i = 0; i < tumblers.size(); i++) {
+                CylinderBox* cylinder = tumblers.at(i)->cylinder;
+
+                for (int j = 0; j < spheres.size(); j++) {
+                    glm::vec4 hit_normal;
+                    PhysSphere* sphere = spheres.at(j);
+                    bool is_interact = cylinder->intersect(sphere, hit_normal);
+
+                    if (is_interact) {
+                        /*lastTime = lastFrame;
+                        cout << "hit: " << hitCount++ << " sphere: " << j << " last time: " << lastTime << endl;*/
+                        glm::vec3 hitNormal = glm::vec3(hit_normal);
+                        // 小球变色
+                        spheres.at(j)->setColor(glm::vec3(1.0f, 0.0f, 0.0f));
+                        // 小球反弹
+                        glm::vec3 velocitySphere = spheres.at(j)->getVel();
+                        spheres.at(j)->setVel(velocitySphere + 2.0f * max(glm::dot(-hitNormal, velocitySphere), 0.0f) * hitNormal);
+                        float velocitySphereValue = glm::length(velocitySphere);
+                        // 碰撞平移
+                        glm::vec3 velocityTranslate = glm::vec3(hitNormal.x, 0.0f, hitNormal.z);
+                        float velocityTranslateRate = 0.02f;
+                        tumblers.at(i)->addValue(-velocityTranslate * velocityTranslateRate * velocitySphereValue, PHYS_PARAM_TYPE::VELOCITY);
+                        // 碰撞旋转
+                        float velocityRotateRate = 25.0f;
+                        float volocityRotate = 1 - glm::dot(glm::normalize(spheres.at(j)->getVel()), -velocityTranslate);
+                        tumblers.at(i)->addValue(glm::vec3(0.0f, volocityRotate * velocityRotateRate * velocitySphereValue, 0.0f), PHYS_PARAM_TYPE::ANGLE_VELOCITY);
+                        // 碰撞摇摆
+                        float velocitySwingRate = 50.0f;
+                        glm::vec3 velocitySwing = glm::vec3(-hitNormal.z, 0.0f, hitNormal.x) * hit_normal.w * velocitySwingRate * velocitySphereValue;
+                        tumblers.at(i)->addValue(velocitySwing, PHYS_PARAM_TYPE::ANGLE_VELOCITY);
+                    }
+                }
+
+                for (int j = 1; j < 3; j++) {
+                    int idx = (i + j) % 3;
+                    glm::vec3 hitNormal;
+                    bool is_interact = cylinder->intersect(tumblers.at(idx)->cylinder->getPhysAxis()[0], tumblers.at(idx)->cylinder->getRadiusDown(), hitNormal);
+                    float velocityBoundRate = 0.05f;
+
+                    if (is_interact) {
+                        // 碰撞反弹
+                        glm::vec3 velocityTumbler = tumblers.at(i)->getVel();
+                        tumblers.at(i)->addValue(-hitNormal * max(glm::dot(hitNormal, velocityTumbler) * 2 - hitNormal * velocityBoundRate, 0.0f), PHYS_PARAM_TYPE::VELOCITY);
+                        velocityTumbler = tumblers.at(idx)->getVel();
+                        tumblers.at(idx)->addValue(hitNormal * max(glm::dot(-hitNormal, velocityTumbler) * 2 + hitNormal * velocityBoundRate, 0.0f), PHYS_PARAM_TYPE::VELOCITY);
+                    }
+                }
+            }
+        }
+        
         // aabb可视化
         /*lineShader.use();
         for (int i = 0; i < tumblers.size(); i++) {
@@ -257,7 +269,7 @@ void display::processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
 
     float cameraSpeed = 2.5f * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    /*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.Position += cameraSpeed * camera.Front;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.Position -= cameraSpeed * camera.Front;
@@ -268,7 +280,7 @@ void display::processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         camera.Position += cameraSpeed * camera.WorldUp;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        camera.Position -= cameraSpeed * camera.WorldUp;
+        camera.Position -= cameraSpeed * camera.WorldUp;*/
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         if (First_R_Key) {
             First_R_Key = false;
@@ -283,10 +295,11 @@ void display::processInput(GLFWwindow* window)
             }
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         if (First_S_Key) {
             First_R_Key = false;
             First_S_Key = false;
+            Ignore_Bound = true;
 
             for (int i = 0; i < spheres.size(); i++) {
                 PhysSphere* sphere = spheres.at(i);
@@ -310,6 +323,7 @@ void display::processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
         First_R_Key = true;
         First_S_Key = true;
+        Ignore_Bound = false;
 
         for (int i = 0; i < spheres.size(); i++) {
             PhysSphere* sphere = spheres.at(i);
