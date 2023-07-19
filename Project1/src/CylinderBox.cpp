@@ -13,8 +13,12 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 	float radiusSphere = sphere->getRadius();
 
 	glm::vec3 axisVec = this->physAxis[1] - this->physAxis[0];
+
+	// position是小球在世界坐标系下的坐标
+	// 创建一个从不倒翁底部最低点指向小球的向量
 	glm::vec3 down2Point = position - this->physAxis[0];
 
+	// axisVec是不倒翁最低点指向最顶点的向量，即对称轴向量
 	// 计算小球中心在中轴线上的投影
 	float shadowLength = glm::dot(glm::normalize(axisVec), down2Point);
 
@@ -27,7 +31,7 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 		return false;
 	}
 	else if (shadowLength <= this->radius_down) {
-		// DOWN
+		// 计算小球与底部半球中心的距离
 		float distanceCenter = glm::length(position - this->physCenter[0]);
 
 		if (distanceCenter <= (radiusSphere + radius_down)) {
@@ -40,7 +44,7 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 		}
 	} 
 	else if (shadowLength <= glm::length(this->physCenter[1] - this->physAxis[0])) {
-		// MIDDLE
+		// 根据投影长度计算插值
 		float interpolateRate = this->countInterpolateRate(shadowLength);
 		float radiusMiddle = this->radius_down + interpolateRate * (this->radius_up - this->radius_down);
 		
@@ -54,7 +58,7 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 		}
 	} 
 	else if (shadowLength <= glm::length(axisVec) + radiusSphere) {
-		// UP
+		// 计算小球与顶部半球中心的距离
 		float distanceCenter = glm::length(position - this->physCenter[1]);
 
 		if (distanceCenter <= (radiusSphere + radius_up)) {
@@ -72,13 +76,21 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 
 }
 
-bool CylinderBox::intersect(glm::vec3 position, float radius, glm::vec3& hitNormal)
+bool CylinderBox::intersect(glm::vec3 buttomPos, glm::vec3 upPos, float radius, glm::vec3& hitNormal)
 {
-	glm::vec2 point2point = glm::vec2(position.x, position.z) - glm::vec2(this->physAxis[0].x, this->physAxis[0].z);
-	float distance = glm::length(point2point);
+	glm::vec2 down2down = glm::vec2(buttomPos.x, buttomPos.z) - glm::vec2(this->physAxis[0].x, this->physAxis[0].z);
+	glm::vec2 down2up = glm::vec2(upPos.x, upPos.z) - glm::vec2(this->physAxis[0].x, this->physAxis[0].z);
+	glm::vec2 up2up = glm::vec2(upPos.x, upPos.z) - glm::vec2(this->physAxis[1].x, this->physAxis[1].z);
+	float down2downDistance = glm::length(down2down);
+	float down2upDistance = glm::length(down2up);
+	float up2upDistance = glm::length(up2up);
+	float ratio = 1.0f;
+	float down2downThread = (this->radius_down + radius) * ratio;
+	float down2upThread = (this->radius_down) * ratio;
+	float up2upThread = (this->radius_up * 2) * ratio;
 
-	if (distance <= (this->radius_down + radius) * 1.05f) {
-		hitNormal = glm::normalize(glm::vec3(point2point.x, 0.0f, point2point.y));
+	if (down2downDistance <= down2downThread || down2upDistance <= down2upThread || up2upDistance <= up2upThread) {
+		hitNormal = glm::normalize(glm::vec3(down2down.x, 0.0f, down2down.y));
 		return true;
 	}
 

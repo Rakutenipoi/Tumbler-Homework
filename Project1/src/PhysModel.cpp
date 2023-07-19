@@ -60,8 +60,11 @@ glm::mat4 PhysModel::update(float deltaTime)
 		threadAngle_z = 1.0f;
 	}
 
+	// 反向加速度
 	this->acceleration_angle = -glm::vec3(this->position_angle.x, 0.0f, this->position_angle.z) * this->torque_length;
+	// 角度衰减
 	this->position_angle = glm::vec3(this->position_angle.x * (1 - this->friction_angle), this->position_angle.y, this->position_angle.z * (1 - this->friction_angle));
+	// 速度衰减
 	this->velocity_angle = glm::vec3(this->velocity_angle.x * threadAngle_x, glm::clamp(this->velocity_angle.y * (1 - this->friction_angle), -rotateThread, rotateThread)
 		, this->velocity_angle.z * threadAngle_z);
 
@@ -88,12 +91,17 @@ glm::mat4 PhysModel::update(float deltaTime)
 	}
 
 	glm::mat4 model = glm::mat4(1.0f);
+	// 平移
 	model = glm::translate(model, this->position);
+	// 绕X轴旋转
 	model = glm::rotate(model, glm::radians(this->position_angle.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	// 绕Y轴旋转
 	model = glm::rotate(model, glm::radians(this->position_angle.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	// 绕Z轴旋转
 	model = glm::rotate(model, glm::radians(this->position_angle.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	// 放缩
 	model = glm::scale(model, glm::vec3(this->scale));
-	
+
 	return model;
 }
 

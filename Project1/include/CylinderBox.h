@@ -23,7 +23,7 @@ class CylinderBox
 public:
 	CylinderBox(glm::vec3 axisStart, glm::vec3 axisEnd);
 	bool intersect(PhysSphere* sphere, glm::vec4& hitNormal);
-	bool intersect(glm::vec3 position, float radius, glm::vec3& hitNormal);
+	bool intersect(glm::vec3 buttomPos, glm::vec3 upPos, float radius, glm::vec3& hitNormal);
 	void update(glm::mat4 model);
 	glm::vec3* getPhysAxis() {
 		return this->physAxis;
@@ -45,10 +45,10 @@ public:
 		this->scale = scale;
 	}
 	float getRadiusDown() {
-		return this->radius_d;
+		return this->radius_down;
 	}
 	float getRadiusUp() {
-		return this->radius_u;
+		return this->radius_up;
 	}
 	// 计算小球中心与中轴线的距离
 	float countDistance(glm::vec3 point);

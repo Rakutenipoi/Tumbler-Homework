@@ -27,19 +27,31 @@ bool firstMouse = true;
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
+// FPS计算
+int frameCount = 0;
+float previousTime = 0;
+
 // 按键设置
 bool First_R_Key = true;
 bool First_S_Key = true;
 bool Ignore_Bound = false;
 
 // 物体位置参数
-    // ------------
-vector<glm::vec3> tumblerPosition = { glm::vec3(0.3f, -0.425f, 0.2f), glm::vec3(-0.3f, -0.425f, -0.3f), glm::vec3(0.0f, -0.425f, 0.0f) };
+// ------------
+float ground = -0.425f;
+vector<glm::vec3> tumblerPosition = { glm::vec3(0.3f, ground, 0.3f), glm::vec3(-0.3f, ground, -0.3f), glm::vec3(0.0f, ground, 0.0f),
+    glm::vec3(-0.3f, ground, 0.3f), glm::vec3(0.3f, ground, -0.3f)};
 vector<glm::vec3> spherePosition = {
+    // ------------------------------------------------------------------------------------------------------------------------------------------------
     glm::vec3(0.0907949f, -0.399212f, -0.208774f), glm::vec3(-0.0186592f, -0.202571f, -0.213606f), glm::vec3(-0.0883394f, -0.287907f, -0.383346f),
     glm::vec3(-0.273077f, 0.264156f, -0.181063f), glm::vec3(0.0192792f, 0.310677f, 0.360827f), glm::vec3(-0.252072f, 0.309068f, 0.0559487f),
     glm::vec3(-0.302903f, -0.0365484f, 0.308075f), glm::vec3(-0.198631f, -0.303337f, 0.315939f), glm::vec3(-0.347168f, -0.209269f, -0.343179f),
     glm::vec3(-0.353572f, -0.262772f, 0.230868f), 
+    glm::vec3(0.0907949f, -0.399212f, -0.208774f), glm::vec3(-0.0186592f, -0.202571f, -0.213606f), glm::vec3(-0.0883394f, -0.287907f, -0.383346f),
+    glm::vec3(-0.273077f, 0.264156f, -0.181063f), glm::vec3(0.0192792f, 0.310677f, 0.360827f), glm::vec3(-0.252072f, 0.309068f, 0.0559487f),
+    glm::vec3(-0.302903f, -0.0365484f, 0.308075f), glm::vec3(-0.198631f, -0.303337f, 0.315939f), glm::vec3(-0.347168f, -0.209269f, -0.343179f),
+    glm::vec3(-0.353572f, -0.262772f, 0.230868f),
+    
 };
 
 // 资产
@@ -87,7 +99,7 @@ void Display(GLFWwindow* window) {
     // 读取模型
     // --------
     std::string modelPath = "Resource/Model/tumbler/tumbler.obj";
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < tumblerPosition.size(); i++) {
         PhysModel* tumbler = new PhysModel(tumblerPosition.at(i), 1.0f, const_cast<char*>(modelPath.c_str()));
         tumbler->setFric(0.01f);
         tumblers.push_back(tumbler);
@@ -99,9 +111,18 @@ void Display(GLFWwindow* window) {
     {
         // 输入
         // ------
+        frameCount++;
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        float dt = currentFrame - previousTime;
+        if (dt >= 1.0f) {
+            float fps = frameCount / dt;
+            std::cout << "FPS: " << fps << std::endl;
+            frameCount = 0;
+            previousTime = currentFrame;
+        }
+
         processInput(window);
 
         // 渲染
@@ -170,31 +191,38 @@ void Display(GLFWwindow* window) {
                         /*lastTime = lastFrame;
                         cout << "hit: " << hitCount++ << " sphere: " << j << " last time: " << lastTime << endl;*/
                         glm::vec3 hitNormal = glm::vec3(hit_normal);
+
                         // 小球变色
-                        spheres.at(j)->setColor(glm::vec3(1.0f, 0.0f, 0.0f));
+                        spheres.at(j)->setColor(glm::vec3(1.0f, 0.2f, 0.3f));
+
                         // 小球反弹
                         glm::vec3 velocitySphere = spheres.at(j)->getVel();
                         spheres.at(j)->setVel(velocitySphere + 2.0f * max(glm::dot(-hitNormal, velocitySphere), 0.0f) * hitNormal);
+                        
+                        // 小球速度大小
                         float velocitySphereValue = glm::length(velocitySphere);
+
                         // 碰撞平移
                         glm::vec3 velocityTranslate = glm::vec3(hitNormal.x, 0.0f, hitNormal.z);
-                        float velocityTranslateRate = 0.02f;
+                        float velocityTranslateRate = 0.02f; // 速度调节比率
                         tumblers.at(i)->addValue(-velocityTranslate * velocityTranslateRate * velocitySphereValue, PHYS_PARAM_TYPE::VELOCITY);
+
                         // 碰撞旋转
                         float velocityRotateRate = 25.0f;
                         float volocityRotate = 1 - glm::dot(glm::normalize(spheres.at(j)->getVel()), -velocityTranslate);
                         tumblers.at(i)->addValue(glm::vec3(0.0f, volocityRotate * velocityRotateRate * velocitySphereValue, 0.0f), PHYS_PARAM_TYPE::ANGLE_VELOCITY);
+
                         // 碰撞摇摆
-                        float velocitySwingRate = 50.0f;
+                        float velocitySwingRate = 100.0f;
                         glm::vec3 velocitySwing = glm::vec3(-hitNormal.z, 0.0f, hitNormal.x) * hit_normal.w * velocitySwingRate * velocitySphereValue;
                         tumblers.at(i)->addValue(velocitySwing, PHYS_PARAM_TYPE::ANGLE_VELOCITY);
                     }
                 }
 
-                for (int j = 1; j < 3; j++) {
-                    int idx = (i + j) % 3;
+                for (int j = 1; j < tumblerPosition.size(); j++) {
+                    int idx = (i + j) % tumblerPosition.size();
                     glm::vec3 hitNormal;
-                    bool is_interact = cylinder->intersect(tumblers.at(idx)->cylinder->getPhysAxis()[0], tumblers.at(idx)->cylinder->getRadiusDown(), hitNormal);
+                    bool is_interact = cylinder->intersect(tumblers.at(idx)->cylinder->getPhysAxis()[0], tumblers.at(idx)->cylinder->getPhysAxis()[1], tumblers.at(idx)->cylinder->getRadiusDown(), hitNormal);
                     float velocityBoundRate = 0.05f;
 
                     if (is_interact) {
@@ -269,7 +297,7 @@ void display::processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
 
     float cameraSpeed = 2.5f * deltaTime;
-    /*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.Position += cameraSpeed * camera.Front;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.Position -= cameraSpeed * camera.Front;
@@ -280,7 +308,7 @@ void display::processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         camera.Position += cameraSpeed * camera.WorldUp;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        camera.Position -= cameraSpeed * camera.WorldUp;*/
+        camera.Position -= cameraSpeed * camera.WorldUp;
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         if (First_R_Key) {
             First_R_Key = false;
@@ -295,7 +323,16 @@ void display::processInput(GLFWwindow* window)
             }
         }
     }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+        for (int i = 0; i < tumblers.size(); i++) {
+            PhysModel* tumbler = tumblers.at(i);
+            //tumbler->setPosAngle(glm::vec3(0.0f, 0.0f, 0.0f));
+            tumbler->setVelAngle(glm::vec3(50.0f, 0.0f, 50.0f));
+            tumbler->setVel(glm::vec3(0.5f, 0.0f, 0.5f));
+            tumbler->setAcc(glm::vec3(0.0f, 0.0f, 0.0f));
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
         if (First_S_Key) {
             First_R_Key = false;
             First_S_Key = false;
@@ -363,7 +400,7 @@ void display::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     lastX = xpos;
     lastY = ypos;
 
-    //camera.ProcessMouseMovement(xoffset, yoffset);
+    camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
