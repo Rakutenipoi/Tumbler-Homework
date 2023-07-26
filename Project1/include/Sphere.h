@@ -20,6 +20,7 @@ public:
 	Sphere(float radius, int slices, int stacks); 
 	void setColor(glm::vec3 color);
 	void draw();
+	void draw(Shader shader);
 	void init(float radius, int slices, int stacks);
 	void setAlpha(float value);
 

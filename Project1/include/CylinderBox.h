@@ -57,7 +57,6 @@ public:
 	// 计算插值比率
 	float countInterpolateRate(float length);
 
-protected:
 	glm::vec3 axis[2];
 	glm::vec3 center[2];
 	glm::vec3 physAxis[2];

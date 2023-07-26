@@ -92,6 +92,122 @@ Shader::Shader(const char* vertexName, const char* fragmentName)
     glDeleteShader(fragment);
 }
 
+Shader::Shader(const char* vertexName, const char* fragmentName, const char* geometryName)
+{
+    // 1. 从文件路径中获取顶点/片段着色器
+    std::string vertexCode;
+    std::string fragmentCode;
+    std::string geometryCode;
+    std::ifstream vShaderFile;
+    std::ifstream fShaderFile;
+    std::ifstream gShaderFile;
+    // 保证ifstream对象可以抛出异常：
+    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    std::vector<char*> shaderPaths = getShaderPath(vertexName, fragmentName);
+
+    std::string geometryShaderPathStr = std::string(shaderPath) + "/" + std::string(GeometryPath) + "/" + std::string(geometryName) + ".gs";
+    char* geometryShaderPath = new char[geometryShaderPathStr.length() + 1];
+    strcpy_s(geometryShaderPath, geometryShaderPathStr.length() + 1, geometryShaderPathStr.c_str());
+
+    char* vertexShaderPath = shaderPaths.at(0);
+    char* fragmentShaderPath = shaderPaths.at(1);
+
+    try
+    {
+        // 打开文件
+        vShaderFile.open(vertexShaderPath);
+        fShaderFile.open(fragmentShaderPath);
+        gShaderFile.open(geometryShaderPath);
+        std::stringstream vShaderStream, fShaderStream, gShaderStream;
+        // 读取文件的缓冲内容到数据流中
+        vShaderStream << vShaderFile.rdbuf();
+        fShaderStream << fShaderFile.rdbuf();
+        gShaderStream << gShaderFile.rdbuf();
+        // 关闭文件处理器
+        vShaderFile.close();
+        fShaderFile.close();
+        gShaderFile.close();
+        // 转换数据流到string
+        vertexCode = vShaderStream.str();
+        fragmentCode = fShaderStream.str();
+        geometryCode = gShaderStream.str();
+    }
+    catch (std::ifstream::failure e)
+    {
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << "——" << e.code() << std::endl;
+    }
+    const char* vShaderCode = vertexCode.c_str();
+    const char* fShaderCode = fragmentCode.c_str();
+    const char* gShaderCode = geometryCode.c_str();
+
+    delete[] vertexShaderPath;
+    delete[] fragmentShaderPath;
+    delete[] geometryShaderPath;
+
+    // 2. 编译着色器
+    unsigned int vertex, fragment, geometry;
+    int success;
+    char infoLog[512];
+
+    // 顶点着色器
+    vertex = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex, 1, &vShaderCode, NULL);
+    glCompileShader(vertex);
+    // 打印编译错误
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    };
+
+    // 片段着色器
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &fShaderCode, NULL);
+    glCompileShader(fragment);
+    // 打印编译错误
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    };
+
+    // 几何着色器
+    geometry = glCreateShader(GL_GEOMETRY_SHADER);
+    glShaderSource(geometry, 1, &gShaderCode, NULL);
+    glCompileShader(geometry);
+    // 打印编译错误
+    glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+    };
+
+    // 着色器程序
+    ID = glCreateProgram();
+    glAttachShader(ID, vertex);
+    glAttachShader(ID, geometry);
+    glAttachShader(ID, fragment);
+    glLinkProgram(ID);
+    // 打印链接错误
+    glGetProgramiv(ID, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(ID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
+    // 删除着色器
+    glDeleteShader(vertex);
+    glDeleteShader(geometry);
+    glDeleteShader(fragment);
+}
+
 void Shader::use()
 {
     glUseProgram(ID);

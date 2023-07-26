@@ -15,8 +15,10 @@
 using namespace display;
 
 // 分辨率设置
-const unsigned int SCR_WIDTH = 1200;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_WIDTH = 1800;
+const unsigned int SCR_HEIGHT = 1200;
+const GLuint SHADOW_WIDTH = 1024;
+const GLuint SHADOW_HEIGHT = 1024;
 
 // 摄像机设置
 Camera camera(glm::vec3(0.0f, 0.0f, 1.8f));
@@ -75,6 +77,7 @@ void Display(GLFWwindow* window) {
     Shader modelShader("model", "model");
     Shader sphereShader("sphere", "sphere");
     Shader lineShader("line", "line");
+    Shader shadowShader("shadow", "shadow", "shadow");
 
     // 创建光源
     Light pointLight(LIGHT_TYPE::POINT);
@@ -105,6 +108,35 @@ void Display(GLFWwindow* window) {
         tumblers.push_back(tumbler);
     }
 
+    // 阴影
+    // ----------------------------------------------------------------------------------------------------
+    // 创建帧缓冲对象
+    GLuint depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+
+    // 创建深度立方体贴图
+    GLuint depthCubemap;
+    glGenTextures(1, &depthCubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+
+    for (GLuint i = 0; i < 6; ++i) {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    }  
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    // 将深度纹理设置为深度缓冲
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // ----------------------------------------------------------------------------------------------------
+
     // 渲染循环
     // --------
     while (!glfwWindowShouldClose(window))
@@ -125,18 +157,58 @@ void Display(GLFWwindow* window) {
 
         processInput(window);
 
-        // 渲染
-        // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // 着色器设置
-        // ----------
+        // 基本参数
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
         vector<glm::mat4> tumblerModel(tumblers.size(), glm::mat4(1.0f));
         vector<glm::mat4> sphereModel(spheres.size(), glm::mat4(1.0f));
+
+        // 渲染
+        // ------
+        // 先渲染深度贴图
+        // ----------------------------------------------------------------------------------------------------
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        vector<glm::mat4> shadowTransforms = configLightMatrix(pointLight);
+        // 着色器设置
+        shadowShader.use();
+        for (int i = 0; i < 6; i++) {
+            shadowShader.setMatrix4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms.at(i));
+        }
+        shadowShader.setFloat("far_plane", 100.0f);
+        shadowShader.setVector3("lightPos", pointLight.position);
+        box.draw();
+        shadowShader.use();
+        for (int i = 0; i < spheres.size(); i++) {
+            PhysSphere* sphere = spheres.at(i);
+            sphereModel.at(i) = sphere->update(deltaTime);
+            shadowShader.setMatrix4("model", sphereModel.at(i));
+            sphere->draw(shadowShader);
+        }
+        for (int i = 0; i < tumblers.size(); i++) {
+            // 位姿更新
+            glm::mat4 _model = tumblers.at(i)->update(deltaTime);
+            tumblerModel.at(i) = _model;
+            shadowShader.setMatrix4("model", _model);
+            //modelShader.setFloat("far_plane", 100.0f);
+            tumblers.at(i)->Draw(shadowShader);
+
+            CylinderBox* cylinder = tumblers.at(i)->cylinder;
+            cylinder->update(_model);
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // ----------------------------------------------------------------------------------------------------
+        // 常规渲染并使用深度贴图
+        // ----------------------------------------------------------------------------------------------------
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // 着色器设置
+        // ----------
         //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         //model = glm::scale(model, glm::vec3(2, 2, 2));
         view = camera.GetViewMatrix();
@@ -148,6 +220,9 @@ void Display(GLFWwindow* window) {
         // --------
         boxShader.use();
         pointLight.apply(boxShader, camera);
+        boxShader.setFloat("far_plane", 100.0f);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
         box.draw();
         // 绘制小球
         // --------
@@ -155,9 +230,8 @@ void Display(GLFWwindow* window) {
         pointLight.apply(sphereShader, camera);
         for (int i = 0; i < spheres.size(); i++) {
             PhysSphere* sphere = spheres.at(i);
-            glm::mat4 _model = sphere->update(deltaTime);
-            sphere->setMatrix(_model, view, projection);
-            //sphere->aabb->update(_model);
+            // glm::mat4 _model = sphere->update(deltaTime);
+            sphere->setMatrix(sphereModel.at(i), view, projection);
             sphere->draw();
         }
         // 绘制不倒翁
@@ -166,16 +240,18 @@ void Display(GLFWwindow* window) {
         pointLight.apply(modelShader, camera);
         for (int i = 0; i < tumblers.size(); i++) {
             // 位姿更新
-            glm::mat4 _model = tumblers.at(i)->update(deltaTime);
-            tumblerModel.at(i) = _model;
-            modelShader.setMatrix4("model", _model);
+            //glm::mat4 _model = tumblers.at(i)->update(deltaTime);
+            //tumblerModel.at(i) = _model;
+            modelShader.setMatrix4("model", tumblerModel.at(i));
             modelShader.setMatrix4("view", view);
             modelShader.setMatrix4("projection", projection);
+            //modelShader.setFloat("far_plane", 100.0f);
             tumblers.at(i)->Draw(modelShader);
    
-            CylinderBox* cylinder = tumblers.at(i)->cylinder;
-            cylinder->update(_model);
+            //CylinderBox* cylinder = tumblers.at(i)->cylinder;
+            //cylinder->update(_model);
         }
+        // ----------------------------------------------------------------------------------------------------
 
         // 计算碰撞
         if (!Ignore_Bound) {
@@ -428,4 +504,22 @@ float generateRandomNumber()
     std::uniform_real_distribution<float> dis(0.0, 1.0);
 
     return dis(gen);
+}
+
+vector<glm::mat4> configLightMatrix(Light light)
+{
+    float aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;
+    float near = 0.1f;
+    float far = 100.0f;
+    glm::mat4 shadowProjection = glm::perspective(glm::radians(90.0f), aspect, near, far);
+    vector<glm::mat4> shadowTransforms;
+
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(light.position, light.position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(light.position, light.position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+    shadowTransforms.push_back(shadowProjection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+    return shadowTransforms;
 }

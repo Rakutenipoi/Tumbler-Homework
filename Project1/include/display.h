@@ -12,6 +12,7 @@
 #include <random>
 #include <glm/gtc/random.hpp>
 
+#include "Light.h"
 
 namespace display{
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -22,4 +23,6 @@ namespace display{
 void Display(GLFWwindow* window);
 void InitSphere();
 float generateRandomNumber();
+std::vector<glm::mat4> configLightMatrix(Light light);
+
 

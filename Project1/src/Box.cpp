@@ -50,6 +50,10 @@ Box::Box()
 	glGenBuffers(1, &this->vbo);
 	glGenBuffers(1, &this->ebo);
 	glGenVertexArrays(1, &this->vao);
+
+	this->model = glm::mat4(1.0f);
+	this->view = glm::mat4(1.0f);
+	this->projection = glm::mat4(1.0f);
 }
 
 void Box::setData(float* vertices, unsigned int* indices, int numVertices, int numIndices)

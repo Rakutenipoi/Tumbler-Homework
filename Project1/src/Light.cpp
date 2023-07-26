@@ -6,6 +6,11 @@ Light::Light(LIGHT_TYPE type)
 	this->init(type);
 }
 
+Light::~Light()
+{
+	glDeleteFramebuffers(1, &this->fbo);
+}
+
 void Light::init(LIGHT_TYPE type)
 {
 	switch (type)
@@ -27,6 +32,9 @@ void Light::init(LIGHT_TYPE type)
 	this->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 	this->diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
 	this->specular = glm::vec3(0.1f, 0.1f, 0.1f);
+
+	// 创建深度图帧缓冲对象
+	glGenFramebuffers(1, &this->fbo);
 }
 
 void Light::setPosition(glm::vec3 position)
@@ -57,4 +65,10 @@ void Light::apply(Shader shader, Camera camera)
 	shader.setVector3("pointLight.diffuse", this->diffuse);
 	shader.setVector3("pointLight.specular", this->specular);
 	shader.setVector3("viewPos", camera.Position);
+}
+
+// 生成深度贴图
+void Light::shadow(unsigned int width, unsigned int height)
+{
+
 }

@@ -74,7 +74,7 @@ glm::mat4 PhysModel::update(float deltaTime)
 	
 
 	// ±ß½çÖµ
-	float bound = 0.5f - this->scale * this->cylinder->getRadiusDown();
+	float bound = 0.5f - this->scale * this->cylinder->radius_d;
 
 	// ±ß½çÅö×²ÅĞ¶Ï
 	if (abs(this->position.x) > bound) {

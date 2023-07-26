@@ -17,6 +17,7 @@ public:
 	Shader();
 
 	Shader(const char* vertexName, const char* fragmentName);
+	Shader(const char* vertexName, const char* fragmentName, const char* geometryName);
 	void use();
 
 	// 着色器Uniform参数设置函数
@@ -32,6 +33,7 @@ private:
 	const char* shaderPath = "Shader";
 	const char* FragmentPath = "Fragment";
 	const char* VertexPath = "Vertex";
+	const char* GeometryPath = "Geometry";
 
 	std::vector<char*> getShaderPath(const char* vertexName, const char* fragmentName);
 	std::vector<char*> getShaderPath(const char* shaderName);

@@ -20,19 +20,24 @@ struct PointLight {
 
 uniform vec3 viewPos;
 uniform PointLight pointLight;
+uniform samplerCube depthMap;
+uniform float far_plane;
 
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow);
+float ShadowCalculation(vec3 fragPos);
 
 void main() {
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(viewPos - fragPos);
 
-    vec3 result = CalcPointLight(pointLight, norm, fragPos, viewDir);
+    float shadow = ShadowCalculation(fragPos);
 
+    vec3 result = CalcPointLight(pointLight, norm, fragPos, viewDir, shadow);
+    
 	fragColor = vec4(result, 1.0);
 }
 
-vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow)
 {
     vec3 lightDir = normalize(light.position - fragPos);
     // diffuse shading
@@ -51,5 +56,18 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     diffuse *= attenuation;
     specular *= attenuation;
 
-    return (ambient + diffuse + specular);
+    return (ambient + (diffuse + specular) * (1 - shadow));
 }
+
+float ShadowCalculation(vec3 fragPos) {
+    vec3 fragToLight = fragPos - pointLight.position; 
+    float closestDepth = texture(depthMap, fragToLight).r;
+    closestDepth *= far_plane;
+    float currentDepth = length(fragToLight);
+    float bias = 0.05;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+
+    return shadow;
+}
+
+

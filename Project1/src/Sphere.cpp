@@ -34,6 +34,13 @@ void Sphere::draw()
 	glBindVertexArray(0);
 }
 
+void Sphere::draw(Shader shader)
+{
+    glBindVertexArray(this->vao);
+    glDrawElements(GL_TRIANGLES, this->slices * this->stacks * 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
 void Sphere::init(float radius, int slices, int stacks)
 {
     this->radius = radius;

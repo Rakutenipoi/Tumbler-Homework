@@ -22,11 +22,12 @@ class Light
 {
 public:
 	Light(LIGHT_TYPE type);
+	~Light();
 	void init(LIGHT_TYPE type);
 	void setPosition(glm::vec3 position);
 	void apply(Shader shader, Camera camera);
+	void shadow(unsigned int width, unsigned int height);
 
-protected:
 	LIGHT_TYPE type;
 
 	glm::vec3 position;
@@ -40,5 +41,7 @@ protected:
 	float quadratic;
 	float cutOff;
 	float outerCutOff;
+
+	unsigned int fbo;
 };
 

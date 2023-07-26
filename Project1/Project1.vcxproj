@@ -187,11 +187,14 @@
     <None Include="Shader\Fragment\model.fs" />
     <None Include="Shader\Fragment\plane.fs" />
     <None Include="Shader\Fragment\line.fs" />
+    <None Include="Shader\Fragment\shadow.fs" />
     <None Include="Shader\Fragment\sphere.fs" />
+    <None Include="Shader\Geometry\shadow.gs" />
     <None Include="Shader\Vertex\box.vs" />
     <None Include="Shader\Vertex\model.vs" />
     <None Include="Shader\Vertex\plane.vs" />
     <None Include="Shader\Vertex\line.vs" />
+    <None Include="Shader\Vertex\shadow.vs" />
     <None Include="Shader\Vertex\sphere.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
