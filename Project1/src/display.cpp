@@ -15,23 +15,23 @@
 using namespace display;
 
 // 分辨率设置
-const unsigned int SCR_WIDTH = 1800;
-const unsigned int SCR_HEIGHT = 1200;
-const GLuint SHADOW_WIDTH = 1024;
-const GLuint SHADOW_HEIGHT = 1024;
+static const unsigned int SCR_WIDTH = 1800;
+static const unsigned int SCR_HEIGHT = 1200;
+static const GLuint SHADOW_WIDTH = 1024;
+static const GLuint SHADOW_HEIGHT = 1024;
 
 // 摄像机设置
-Camera camera(glm::vec3(0.0f, 0.0f, 1.8f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
-bool firstMouse = true;
+static Camera camera(glm::vec3(0.0f, 0.0f, 1.8f));
+static float lastX = SCR_WIDTH / 2.0f;
+static float lastY = SCR_HEIGHT / 2.0f;
+static bool firstMouse = true;
 
-float deltaTime = 0.0f; // 当前帧与上一帧的时间差
-float lastFrame = 0.0f; // 上一帧的时间
+static float deltaTime = 0.0f; // 当前帧与上一帧的时间差
+static float lastFrame = 0.0f; // 上一帧的时间
 
 // FPS计算
-int frameCount = 0;
-float previousTime = 0;
+static int frameCount = 0;
+static float previousTime = 0;
 
 // 按键设置
 bool First_R_Key = true;

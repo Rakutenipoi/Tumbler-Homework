@@ -78,6 +78,15 @@
     <ClCompile Include="src\CylinderBox.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\Particle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StaticMesh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\utils.h">
@@ -126,6 +135,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\CylinderBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Particle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StaticMesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\test.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

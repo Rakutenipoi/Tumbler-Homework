@@ -4,6 +4,7 @@
 
 #include "include/display.h"
 #include "include/edit.h"
+#include "include/test.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -15,11 +16,12 @@ const unsigned int SCR_HEIGHT = 1200;
 enum MODE
 {
     DISPLAY,
-    EDIT
+    EDIT,
+    TEST,
 };
 
 // Ä£Ê½Ñ¡Ôñ
-MODE mode = DISPLAY;
+MODE mode = TEST;
 
 int main()
 {
@@ -61,6 +63,9 @@ int main()
         break;
     case EDIT:
         Edit(window);
+        break;
+    case TEST:
+        Test(window);
         break;
     default:
         break;
