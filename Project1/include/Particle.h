@@ -65,6 +65,7 @@ public:
 
 	Particle();
 	~Particle();
+	Particle& operator=(const Particle& other);
 
 	void update(float deltaTime);
 	void init();
@@ -107,6 +108,7 @@ private:
 class ParticleSystem {
 public:
 	ParticleSystem();
+	~ParticleSystem();
 	void add(vector<Particle*> particles);
 	void update(float deltaTime);
 	void render(Shader shader);

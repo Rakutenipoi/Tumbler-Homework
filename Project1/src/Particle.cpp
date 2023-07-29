@@ -17,10 +17,18 @@ Particle::~Particle()
 	//delete this->mesh;
 }
 
+Particle& Particle::operator=(const Particle& other)
+{
+	this->type = other.type;
+
+	return *this;
+}
+
 MeshParticle& MeshParticle::operator=(const MeshParticle& other)
 {
+	Particle::operator=(other);
+
 	this->radius = other.radius;
-	this->type = other.type;
 	this->mesh = other.mesh;
 
 	return *this;
@@ -67,6 +75,7 @@ void Particle::render(Shader shader)
 
 MeshParticle::MeshParticle()
 {
+	this->type = PARTICLE_TYPE::MESH;
 	this->radius = DEFAULT_RADIUS;
 }
 
@@ -168,6 +177,13 @@ int Particle::getParamInteger(ATTRIB_TYPE type)
 
 ParticleSystem::ParticleSystem()
 {
+}
+
+ParticleSystem::~ParticleSystem()
+{
+	for (Particle* particle : this->particles) {
+		delete particle;
+	}
 }
 
 void ParticleSystem::add(vector<Particle*> particles)
