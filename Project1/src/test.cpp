@@ -4,6 +4,9 @@
 #include "../include/Light.h"
 #include "../include/StaticMesh.h"
 
+#define DEFAULT_SLICES 30
+#define DEFAULT_STACKS 30
+
 // 分辨率设置
 static const unsigned int SCR_WIDTH = 1800;
 static const unsigned int SCR_HEIGHT = 1200;
@@ -47,18 +50,21 @@ void Test(GLFWwindow* window)
     pointLight.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
     // 创建粒子
+    StaticSphere* sphere = new StaticSphere(1.0f, DEFAULT_SLICES, DEFAULT_STACKS);
     vector<Particle> particles;
     for (int i = 0; i < spherePosition.size(); i++) {
         Particle particle = Particle();
-        particle.setMesh(MESH_TYPE::SPHERE);
+        particle.setMesh(sphere, MESH_TYPE::SPHERE);
         particle.setParamVector3(spherePosition.at(i), ATTRIB_TYPE::POSITION);
         particle.setParamVector3(vec3(1.0f), ATTRIB_TYPE::COLOR);
-        particle.setParamFloat(0.5f, ATTRIB_TYPE::ALPHA);
+        particle.setParamFloat(1.0f, ATTRIB_TYPE::ALPHA);
 
         particles.push_back(particle);
     }
     ParticleSystem ps;
     ps.add(particles);
+    ps.setBoundary(vec2(-0.5f, 0.5f));
+    ParticleEmitter pe;
 
     // 渲染循环
     // --------
@@ -98,6 +104,8 @@ void Test(GLFWwindow* window)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    delete sphere;
 }
 
 
@@ -148,4 +156,7 @@ void processInput(GLFWwindow* window)
         camera.Position += cameraSpeed * camera.WorldUp;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         camera.Position -= cameraSpeed * camera.WorldUp;
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        // Emit
+        ;
 }

@@ -63,20 +63,23 @@ public:
 	ParticleParameter param;
 
 	Particle();
+	//Particle(const Particle& other);
 	~Particle();
+
 	void update(float deltaTime);
 	void init();
 	bool isDead();
-	void setMesh(MESH_TYPE type);
-	void setID(int value);
-	void setRadius(float value);
-	int getID();
 	void render(Shader shader);
 
+	void setMesh(StaticMesh* mesh, MESH_TYPE type);
+	void setID(int value);
+	void setRadius(float value);
 	void setParamVector3(vec3 value, ATTRIB_TYPE type);
 	void setParamFloat(float value, ATTRIB_TYPE type);
 	void setParamInteger(int value, ATTRIB_TYPE type);
 
+	int getID();
+	float getRadius();
 	vec3 getParamVector3(ATTRIB_TYPE type);
 	float getParamFloat(ATTRIB_TYPE type);
 	int getParamInteger(ATTRIB_TYPE type);
@@ -96,10 +99,12 @@ public:
 	void update(float deltaTime);
 	void render(Shader shader);
 	void checkBoundary(Particle target);
+	void setBoundary(vec2 x, vec2 y, vec2 z);
+	void setBoundary(vec2 xyz);
 
 private:
 	vector<Particle> particles;
-	float bounds[6];
+	float bounds[6]; // -x, +x, -y, +y, -z, +z
 };
 
 class ParticleEmitter {
@@ -110,6 +115,6 @@ public:
 	vec3 positionTolerance;
 	vec3 positionInitialValue;
 
-	void generate(int num);
+	void generate(int num, Particle target, ParticleSystem ps);
 };
 

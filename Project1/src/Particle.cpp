@@ -1,7 +1,5 @@
 #include "../include/Particle.h"
 
-#define DEFAULT_SLICES 30
-#define DEFAULT_STACKS 30
 #define DEFAULT_RADIUS 0.01f
 
 ParticleParameter::ParticleParameter()
@@ -13,6 +11,13 @@ Particle::Particle()
 {
 	this->radius = DEFAULT_RADIUS;
 }
+
+//Particle::Particle(const Particle& other)
+//{
+//	this->radius = other.radius;
+//	this->type = other.type;
+//	this->mesh = other.mesh;
+//}
 
 Particle::~Particle()
 {
@@ -39,12 +44,12 @@ bool Particle::isDead()
 	return this->getParamInteger(ATTRIB_TYPE::LIFESPAN) <= 0 ? true : false;
 }
 
-void Particle::setMesh(MESH_TYPE type)
+void Particle::setMesh(StaticMesh* mesh, MESH_TYPE type)
 {
 	switch (type)
 	{
 	case MESH_TYPE::SPHERE:
-		mesh = new StaticSphere(this->radius, DEFAULT_SLICES, DEFAULT_STACKS);
+		this->mesh = mesh;
 		break;
 	case MESH_TYPE::CUBE:
 		break;
@@ -70,9 +75,15 @@ int Particle::getID()
 	return this->id;
 }
 
+float Particle::getRadius()
+{
+	return this->radius;
+}
+
 void Particle::render(Shader shader)
 {
 	mat4 model = translate(mat4(1.0f), getParamVector3(ATTRIB_TYPE::POSITION));
+	model = glm::scale(model, glm::vec3(this->radius));
 	shader.setMatrix4("model", model);
 	shader.setFloat("alpha", getParamFloat(ATTRIB_TYPE::ALPHA));
 	shader.setVector3("color", getParamVector3(ATTRIB_TYPE::COLOR));
@@ -159,6 +170,7 @@ void ParticleSystem::update(float deltaTime)
 {
 	for (Particle particle : this->particles) {
 		particle.update(deltaTime);
+		this->checkBoundary(particle);
 	}
 }
 
@@ -167,6 +179,61 @@ void ParticleSystem::render(Shader shader)
 	for (Particle particle : this->particles) {
 		particle.render(shader);
 	}
+}
+
+void ParticleSystem::checkBoundary(Particle target)
+{
+	float radius = target.getRadius();
+	vec3 position = target.getParamVector3(ATTRIB_TYPE::POSITION);
+	vec3 direction = target.getParamVector3(ATTRIB_TYPE::DIRECTION);
+
+	// X÷·±ﬂΩÁ≈–∂œ
+	if (position.x < this->bounds[0] + radius) {
+		direction.x *= -1;
+		position.x = this->bounds[0] + radius;
+	}
+	else if (position.x > this->bounds[1] - radius) {
+		direction.x *= -1;
+		position.x = this->bounds[1] - radius;
+	}
+
+	// Y÷·±ﬂΩÁ≈–∂œ
+	if (position.y < this->bounds[2] + radius) {
+		direction.y *= -1;
+		position.y = this->bounds[2] + radius;
+	}
+	else if (position.y > this->bounds[3] - radius) {
+		direction.y *= -1;
+		position.y = this->bounds[3] - radius;
+	}
+
+	// Z÷·±ﬂΩÁ≈–∂œ
+	if (position.z < this->bounds[4] + radius) {
+		direction.z *= -1;
+		position.z = this->bounds[4] + radius;
+	}
+	else if (position.z > this->bounds[5] - radius) {
+		direction.z *= -1;
+		position.z = this->bounds[5] - radius;
+	}
+
+	target.setParamVector3(position, ATTRIB_TYPE::POSITION);
+	target.setParamVector3(direction, ATTRIB_TYPE::DIRECTION);
+}
+
+void ParticleSystem::setBoundary(vec2 x, vec2 y, vec2 z)
+{
+	this->bounds[0] = x.x;
+	this->bounds[1] = x.y;
+	this->bounds[2] = y.x;
+	this->bounds[3] = y.y;
+	this->bounds[4] = z.x;
+	this->bounds[5] = z.y;
+}
+
+void ParticleSystem::setBoundary(vec2 xyz)
+{
+	this->setBoundary(xyz, xyz, xyz);
 }
 
 void ParticleManager::setInteger(int value, ParticleParameter& target, ATTRIB_TYPE type)
@@ -273,4 +340,9 @@ int ParticleManager::getInteger(ParticleParameter& target, ATTRIB_TYPE type)
 
 ParticleEmitter::ParticleEmitter()
 {
+}
+
+void ParticleEmitter::generate(int num, Particle target, ParticleSystem ps)
+{
+
 }
