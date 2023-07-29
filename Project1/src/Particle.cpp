@@ -1,6 +1,7 @@
 #include "../include/Particle.h"
 
 #define DEFAULT_RADIUS 0.01f
+#define DEFAULT_LIFESPAN 30
 
 ParticleParameter::ParticleParameter()
 {
@@ -196,8 +197,9 @@ void ParticleSystem::add(vector<Particle*> particles)
 void ParticleSystem::update(float deltaTime)
 {
 	for (int i = 0; i < this->particles.size(); i++) {
-		particles.at(i)->update(deltaTime);
-		MeshParticle* meshParticle = dynamic_cast<MeshParticle*>(particles.at(i));
+		Particle* particle = particles.at(i);
+		particle->update(deltaTime);
+		MeshParticle* meshParticle = dynamic_cast<MeshParticle*>(particle);
 		this->checkBoundary(*meshParticle);
 	}
 }
@@ -219,10 +221,12 @@ void ParticleSystem::checkBoundary(MeshParticle& target)
 	if (position.x < this->bounds[0] + radius) {
 		direction.x *= -1;
 		position.x = this->bounds[0] + radius;
+		target.setParamVector3(vec3(0.56f, 0.71f, 0.29f), ATTRIB_TYPE::COLOR);
 	}
 	else if (position.x > this->bounds[1] - radius) {
 		direction.x *= -1;
 		position.x = this->bounds[1] - radius;
+		target.setParamVector3(vec3(0.4f, 0.73f, 0.72f), ATTRIB_TYPE::COLOR);
 	}
 
 	// Y÷·±ﬂΩÁ≈–∂œ
@@ -239,6 +243,7 @@ void ParticleSystem::checkBoundary(MeshParticle& target)
 	if (position.z < this->bounds[4] + radius) {
 		direction.z *= -1;
 		position.z = this->bounds[4] + radius;
+		target.setParamVector3(vec3(0.98f, 0.89f, 0.32f), ATTRIB_TYPE::COLOR);
 	}
 	else if (position.z > this->bounds[5] - radius) {
 		direction.z *= -1;
@@ -247,6 +252,19 @@ void ParticleSystem::checkBoundary(MeshParticle& target)
 
 	target.setParamVector3(position, ATTRIB_TYPE::POSITION);
 	target.setParamVector3(direction, ATTRIB_TYPE::DIRECTION);
+}
+
+void ParticleSystem::stop()
+{
+	for (Particle* particle : this->particles) {
+		particle->setParamFloat(0.0f, ATTRIB_TYPE::VELOCITY);
+		particle->setParamVector3(vec3(0.0f), ATTRIB_TYPE::DIRECTION);
+	}
+}
+
+void ParticleSystem::erase(int idx)
+{
+	this->particles.erase(this->particles.begin() + idx);
 }
 
 void ParticleSystem::setBoundary(vec2 x, vec2 y, vec2 z)
@@ -262,6 +280,16 @@ void ParticleSystem::setBoundary(vec2 x, vec2 y, vec2 z)
 void ParticleSystem::setBoundary(vec2 xyz)
 {
 	this->setBoundary(xyz, xyz, xyz);
+}
+
+int ParticleSystem::getSize()
+{
+	return this->particles.size();
+}
+
+vector<Particle*> ParticleSystem::getParticles()
+{
+	return this->particles;
 }
 
 void ParticleManager::setInteger(int value, ParticleParameter& target, ATTRIB_TYPE type)
@@ -387,7 +415,7 @@ void ParticleEmitter::generate(int num, MeshParticle target, ParticleSystem& ps)
 		vec3 direction = vec3(generateRandomNumber(), generateRandomNumber(), generateRandomNumber()) * 2.0f - 1.0f;
 		particle->setParamVector3(glm::normalize(direction), ATTRIB_TYPE::DIRECTION);
 		particle->setParamFloat(velocityInitialValue + (2 * generateRandomNumber() - 1) * velocityTolerance, ATTRIB_TYPE::VELOCITY);
-		particle->setParamInteger(3, ATTRIB_TYPE::LIFESPAN);
+		particle->setParamInteger(DEFAULT_LIFESPAN, ATTRIB_TYPE::LIFESPAN);
 
 
 		particles.push_back(particle);

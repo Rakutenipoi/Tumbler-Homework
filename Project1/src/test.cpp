@@ -56,6 +56,7 @@ void Test(GLFWwindow* window)
     particle.setMesh(sphere, MESH_TYPE::SPHERE);
     particle.setParamVector3(vec3(1.0f), ATTRIB_TYPE::COLOR);
     particle.setParamFloat(1.0f, ATTRIB_TYPE::ALPHA);
+    particle.setRadius(0.001f);
 
     ParticleSystem ps;
     ps.setBoundary(vec2(-1.0f, 1.0f));
@@ -66,7 +67,7 @@ void Test(GLFWwindow* window)
 
     for (int i = 0; i < spherePosition.size(); i++) {
         pe.positionInitialValue = spherePosition.at(i);
-        pe.generate(10, particle, ps);
+        pe.generate(500, particle, ps);
     }
     
     // äÖÈ¾Ñ­»·

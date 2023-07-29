@@ -11,6 +11,7 @@
 #include "../include/Light.h"
 #include "../include/PhysModel.h"
 #include "../include/CylinderBox.h"
+#include "../include/utils.h"
 
 using namespace display;
 
@@ -60,6 +61,15 @@ vector<glm::vec3> spherePosition = {
 vector<PhysSphere*> spheres;
 vector<PhysModel*> tumblers;
 
+// 创建粒子系统
+ParticleSystem ps;
+ParticleEmitter pe;
+StaticSphere* sphere = new StaticSphere(1.0f, 30, 30);
+MeshParticle particle = MeshParticle();
+static const float DEFAULT_RADIUS = 0.02f;
+static const int DEFAULT_LIFESPAN = 30;
+
+
 // 渲染显示
 void Display(GLFWwindow* window) {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -89,15 +99,17 @@ void Display(GLFWwindow* window) {
     box.setShader(boxShader);
     box.setData();
 
-    // 创建球体对象
-    // ------------
-    for (int i = 0; i < spherePosition.size(); i++) {
-        PhysSphere* sphere = new PhysSphere(spherePosition.at(i), 0.01f, 30, 30, 1.0f);
-        sphere->setAcc(glm::vec3(0.0f, -0.0f, 0.0f));
-        sphere->setColor(glm::vec3(1.0f));
-        sphere->setShader(sphereShader);
-        spheres.push_back(sphere);
-    }
+    // 粒子系统设置
+    sphere->initBuffer();
+    particle.setMesh(sphere, MESH_TYPE::SPHERE);
+    particle.setParamVector3(vec3(1.0f), ATTRIB_TYPE::COLOR);
+    particle.setParamFloat(1.0f, ATTRIB_TYPE::ALPHA);
+    particle.setRadius(DEFAULT_RADIUS);
+
+    ps.setBoundary(vec2(-0.5f, 0.5f));
+
+    pe.velocityInitialValue = 5e-3f;
+    pe.velocityTolerance = 2e-3f;
     
     // 读取模型
     // --------
@@ -181,12 +193,12 @@ void Display(GLFWwindow* window) {
         shadowShader.setVector3("lightPos", pointLight.position);
         box.draw();
         shadowShader.use();
-        for (int i = 0; i < spheres.size(); i++) {
+        /*for (int i = 0; i < spheres.size(); i++) {
             PhysSphere* sphere = spheres.at(i);
             sphereModel.at(i) = sphere->update(deltaTime);
             shadowShader.setMatrix4("model", sphereModel.at(i));
             sphere->draw(shadowShader);
-        }
+        }*/
         for (int i = 0; i < tumblers.size(); i++) {
             // 位姿更新
             glm::mat4 _model = tumblers.at(i)->update(deltaTime);
@@ -225,17 +237,67 @@ void Display(GLFWwindow* window) {
         glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
         box.draw();
         // 绘制小球
-        // --------
+        // ------------------------------------------------------------------------------------------------
+        //sphereShader.use();
+        //pointLight.apply(sphereShader, camera);
+        //for (int i = 0; i < spheres.size(); i++) {
+        //    PhysSphere* sphere = spheres.at(i);
+        //    // glm::mat4 _model = sphere->update(deltaTime);
+        //    sphere->setMatrix(sphereModel.at(i), view, projection);
+        //    sphere->draw();
+        //}
+        // 绘制粒子
+        // --------------------------------------------------------------------------------------------------
         sphereShader.use();
+        sphereShader.setMatrix4("view", view);
+        sphereShader.setMatrix4("projection", projection);
         pointLight.apply(sphereShader, camera);
-        for (int i = 0; i < spheres.size(); i++) {
-            PhysSphere* sphere = spheres.at(i);
-            // glm::mat4 _model = sphere->update(deltaTime);
-            sphere->setMatrix(sphereModel.at(i), view, projection);
-            sphere->draw();
+        // 粒子破碎效果
+        vector<int> eraseList;
+        int size = ps.getSize();
+        for (int i = 0; i < size; i++) {
+            vector<Particle*> particles = ps.getParticles();
+            MeshParticle* target = dynamic_cast<MeshParticle*>(particles.at(i));
+
+            bool is_dead = target->isDead();
+            if (is_dead) {
+                float radius = target->getRadius();
+                
+                // 避免粒子过小
+                if (radius >= DEFAULT_RADIUS / 5) {
+                    eraseList.push_back(i);
+                    glm::vec3 direction = target->getParamVector3(ATTRIB_TYPE::DIRECTION);
+                    float velocity = target->getParamFloat(ATTRIB_TYPE::VELOCITY);
+                    std::vector<glm::vec3> directions = vectorSplit(direction, 30.0f);
+
+                    vector<Particle*> newParticles;
+                    for (int j = 0; j < 4; j++) {
+                        MeshParticle* newParticle = new MeshParticle();
+                        *newParticle = *target;
+
+                        newParticle->setRadius(radius / 2);
+                        newParticle->setParamFloat(velocity * 0.8, ATTRIB_TYPE::VELOCITY);
+                        newParticle->setParamVector3(directions.at(j), ATTRIB_TYPE::DIRECTION);
+                        newParticle->setParamVector3(target->getParamVector3(ATTRIB_TYPE::COLOR), ATTRIB_TYPE::COLOR);
+                        newParticle->setParamVector3(target->getParamVector3(ATTRIB_TYPE::POSITION), ATTRIB_TYPE::POSITION);
+                        newParticle->setParamFloat(target->getParamFloat(ATTRIB_TYPE::ALPHA), ATTRIB_TYPE::ALPHA);
+                        newParticle->setParamInteger(DEFAULT_LIFESPAN, ATTRIB_TYPE::LIFESPAN);
+
+                        newParticles.push_back(newParticle);
+                    }
+
+                    ps.add(newParticles);
+                }
+            }
         }
+        for (int i : eraseList) {
+            ps.erase(i);
+        }
+        // 粒子渲染与位姿更新
+        ps.render(sphereShader);
+        ps.update(deltaTime);
         // 绘制不倒翁
-        // ----------
+        // --------------------------------------------------------------------------------------------------
         modelShader.use();
         pointLight.apply(modelShader, camera);
         for (int i = 0; i < tumblers.size(); i++) {
@@ -258,42 +320,43 @@ void Display(GLFWwindow* window) {
             for (int i = 0; i < tumblers.size(); i++) {
                 CylinderBox* cylinder = tumblers.at(i)->cylinder;
 
-                for (int j = 0; j < spheres.size(); j++) {
+                for (Particle* particle : ps.getParticles()) {
+                    MeshParticle* target = dynamic_cast<MeshParticle*>(particle);
                     glm::vec4 hit_normal;
-                    PhysSphere* sphere = spheres.at(j);
-                    bool is_interact = cylinder->intersect(sphere, hit_normal);
+                    bool is_interact = cylinder->intersect(*target, hit_normal);
 
                     if (is_interact) {
-                        /*lastTime = lastFrame;
-                        cout << "hit: " << hitCount++ << " sphere: " << j << " last time: " << lastTime << endl;*/
+                        target->setParamInteger(target->getParamInteger(ATTRIB_TYPE::LIFESPAN) - 1, ATTRIB_TYPE::LIFESPAN);
                         glm::vec3 hitNormal = glm::vec3(hit_normal);
 
                         // 小球变色
-                        spheres.at(j)->setColor(glm::vec3(1.0f, 0.2f, 0.3f));
+                        target->setParamVector3(glm::vec3(1.0f, 0.2f, 0.3f), ATTRIB_TYPE::COLOR);
 
                         // 小球反弹
-                        glm::vec3 velocitySphere = spheres.at(j)->getVel();
-                        spheres.at(j)->setVel(velocitySphere + 2.0f * max(glm::dot(-hitNormal, velocitySphere), 0.0f) * hitNormal);
+                        glm::vec3 direction = target->getParamVector3(ATTRIB_TYPE::DIRECTION);
+                        direction += 2.0f * glm::max(glm::dot(-hitNormal, direction), 0.0f) * hitNormal;
+                        target->setParamVector3(direction, ATTRIB_TYPE::DIRECTION);
                         
                         // 小球速度大小
-                        float velocitySphereValue = glm::length(velocitySphere);
+                        float velocitySphereValue = target->getParamFloat(ATTRIB_TYPE::VELOCITY);
 
                         // 碰撞平移
                         glm::vec3 velocityTranslate = glm::vec3(hitNormal.x, 0.0f, hitNormal.z);
-                        float velocityTranslateRate = 0.02f; // 速度调节比率
+                        float velocityTranslateRate = 0.8f; // 速度调节比率
                         tumblers.at(i)->addValue(-velocityTranslate * velocityTranslateRate * velocitySphereValue, PHYS_PARAM_TYPE::VELOCITY);
 
                         // 碰撞旋转
-                        float velocityRotateRate = 25.0f;
-                        float volocityRotate = 1 - glm::dot(glm::normalize(spheres.at(j)->getVel()), -velocityTranslate);
+                        float velocityRotateRate = 250.0f;
+                        float volocityRotate = 1 - glm::dot(direction, -velocityTranslate);
                         tumblers.at(i)->addValue(glm::vec3(0.0f, volocityRotate * velocityRotateRate * velocitySphereValue, 0.0f), PHYS_PARAM_TYPE::ANGLE_VELOCITY);
 
                         // 碰撞摇摆
-                        float velocitySwingRate = 100.0f;
+                        float velocitySwingRate = 1000.0f;
                         glm::vec3 velocitySwing = glm::vec3(-hitNormal.z, 0.0f, hitNormal.x) * hit_normal.w * velocitySwingRate * velocitySphereValue;
                         tumblers.at(i)->addValue(velocitySwing, PHYS_PARAM_TYPE::ANGLE_VELOCITY);
                     }
                 }
+                
 
                 for (int j = 1; j < tumblerPosition.size(); j++) {
                     int idx = (i + j) % tumblerPosition.size();
@@ -388,7 +451,11 @@ void display::processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         if (First_R_Key) {
             First_R_Key = false;
-            InitSphere();
+            //InitSphere();
+            for (int i = 0; i < spherePosition.size(); i++) {
+                pe.positionInitialValue = spherePosition.at(i);
+                pe.generate(1, particle, ps);
+            }
 
             for (int i = 0; i < tumblers.size(); i++) {
                 PhysModel* tumbler = tumblers.at(i);

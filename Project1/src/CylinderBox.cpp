@@ -6,11 +6,9 @@ CylinderBox::CylinderBox(glm::vec3 axisStart, glm::vec3 axisEnd)
 	this->axis[1] = axisEnd;
 }
 
-bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
+bool CylinderBox::intersect(glm::vec3 position, float radius, glm::vec4& hitNormal)
 {
-	// 小球中心坐标和半径
-	glm::vec3 position = sphere->getPos();
-	float radiusSphere = sphere->getRadius();
+	float radiusSphere = radius;
 
 	glm::vec3 axisVec = this->physAxis[1] - this->physAxis[0];
 
@@ -42,21 +40,21 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 		else {
 			return false;
 		}
-	} 
+	}
 	else if (shadowLength <= glm::length(this->physCenter[1] - this->physAxis[0])) {
 		// 根据投影长度计算插值
 		float interpolateRate = this->countInterpolateRate(shadowLength);
 		float radiusMiddle = this->radius_down + interpolateRate * (this->radius_up - this->radius_down);
-		
+
 		if (distance <= (radiusMiddle + 2 * radiusSphere)) {
 			hit_normal = glm::normalize(position - (this->physCenter[0] + shadowLength * glm::normalize(axisVec)));
 			hitNormal = glm::vec4(hit_normal, interpolateRate + 0.3f);
 			return true;
-		} 
+		}
 		else {
 			return false;
 		}
-	} 
+	}
 	else if (shadowLength <= glm::length(axisVec) + radiusSphere) {
 		// 计算小球与顶部半球中心的距离
 		float distanceCenter = glm::length(position - this->physCenter[1]);
@@ -75,6 +73,7 @@ bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4 &hitNormal)
 	}
 
 }
+
 
 bool CylinderBox::intersect(glm::vec3 buttomPos, glm::vec3 upPos, float radius, glm::vec3& hitNormal)
 {
@@ -95,6 +94,22 @@ bool CylinderBox::intersect(glm::vec3 buttomPos, glm::vec3 upPos, float radius, 
 	}
 
 	return false;
+}
+
+bool CylinderBox::intersect(MeshParticle target, glm::vec4& hitNormal)
+{
+	glm::vec3 position = target.getParamVector3(ATTRIB_TYPE::POSITION);
+	float radius = target.getRadius();
+
+	return this->intersect(position, radius, hitNormal);
+}
+
+bool CylinderBox::intersect(PhysSphere* sphere, glm::vec4& hitNormal)
+{
+	glm::vec3 position = sphere->getPos();
+	float radius = sphere->getRadius();
+
+	return this->intersect(position, radius, hitNormal);
 }
 
 void CylinderBox::update(glm::mat4 model)

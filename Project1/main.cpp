@@ -21,7 +21,7 @@ enum MODE
 };
 
 // Ä£Ê½Ñ¡Ôñ
-MODE mode = TEST;
+MODE mode = DISPLAY;
 
 int main()
 {

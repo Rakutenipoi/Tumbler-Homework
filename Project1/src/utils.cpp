@@ -113,3 +113,24 @@ float generateRandomNumber()
 
 	return dis(gen);
 }
+
+std::vector<glm::vec3> vectorSplit(glm::vec3 direction, float alpha)
+{
+	std::vector<glm::vec3> directions;
+	glm::vec3 perpendicular(-direction.y, direction.x, direction.z); // 垂直向量
+
+	float angle = glm::radians(alpha); // 旋转角度
+
+	// 旋转四次生成四个新向量
+	glm::vec3 direction_1 = direction * cos(angle) + glm::cross(perpendicular, direction) * sin(angle);
+	glm::vec3 direction_2 = direction_1 * cos(angle) + glm::cross(perpendicular, direction_1) * sin(angle);
+	glm::vec3 direction_3 = direction_2 * cos(angle) + glm::cross(perpendicular, direction_2) * sin(angle);
+	glm::vec3 direction_4 = direction_3 * cos(angle) + glm::cross(perpendicular, direction_3) * sin(angle);
+
+	directions.push_back(glm::normalize(direction_1));
+	directions.push_back(glm::normalize(direction_2));
+	directions.push_back(glm::normalize(direction_3));
+	directions.push_back(glm::normalize(direction_4));
+
+	return directions;
+}

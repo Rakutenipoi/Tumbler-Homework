@@ -41,7 +41,6 @@ StaticSphere::StaticSphere(float radius, int slices, int stacks)
     this->stacks = stacks;
 
     this->generate();
-    this->initBuffer();
 }
 
 void StaticSphere::draw()

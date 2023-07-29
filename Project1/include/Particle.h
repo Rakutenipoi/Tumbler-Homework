@@ -77,8 +77,8 @@ public:
 	void setParamVector3(vec3 value, ATTRIB_TYPE type);
 	void setParamFloat(float value, ATTRIB_TYPE type);
 	void setParamInteger(int value, ATTRIB_TYPE type);
+
 	int getID();
-	
 	vec3 getParamVector3(ATTRIB_TYPE type);
 	float getParamFloat(ATTRIB_TYPE type);
 	int getParamInteger(ATTRIB_TYPE type);
@@ -109,12 +109,19 @@ class ParticleSystem {
 public:
 	ParticleSystem();
 	~ParticleSystem();
+
 	void add(vector<Particle*> particles);
 	void update(float deltaTime);
 	void render(Shader shader);
 	void checkBoundary(MeshParticle& target);
+	void stop();
+	void erase(int idx);
+
 	void setBoundary(vec2 x, vec2 y, vec2 z);
 	void setBoundary(vec2 xyz);
+
+	int getSize();
+	vector<Particle*> getParticles();
 
 private:
 	vector<Particle*> particles;

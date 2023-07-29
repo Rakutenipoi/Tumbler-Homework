@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "PhysSphere.h"
+#include "Particle.h"
 
 // 划分碰撞的区域，不倒翁由下半圆、圆台和上半圆组成
 enum class BOUND_STAGE
@@ -22,9 +23,14 @@ class CylinderBox
 {
 public:
 	CylinderBox(glm::vec3 axisStart, glm::vec3 axisEnd);
+
+	bool intersect(glm::vec3 position, float radius, glm::vec4& hitNormal);
 	bool intersect(PhysSphere* sphere, glm::vec4& hitNormal);
 	bool intersect(glm::vec3 buttomPos, glm::vec3 upPos, float radius, glm::vec3& hitNormal);
+	bool intersect(MeshParticle target, glm::vec4& hitNormal);
+	
 	void update(glm::mat4 model);
+
 	glm::vec3* getPhysAxis() {
 		return this->physAxis;
 	}
