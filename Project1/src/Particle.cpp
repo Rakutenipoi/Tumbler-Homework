@@ -16,7 +16,7 @@ ParticleParameter::ParticleParameter()
 
 Particle::Particle()
 {
-	
+	this->level = 1;
 }
 
 Particle::~Particle()
@@ -27,6 +27,7 @@ Particle::~Particle()
 Particle& Particle::operator=(const Particle& other)
 {
 	this->type = other.type;
+	this->level = other.level;
 
 	return *this;
 }

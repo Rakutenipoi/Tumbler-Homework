@@ -49,12 +49,7 @@ vector<glm::vec3> spherePosition = {
     glm::vec3(0.0907949f, -0.399212f, -0.208774f), glm::vec3(-0.0186592f, -0.202571f, -0.213606f), glm::vec3(-0.0883394f, -0.287907f, -0.383346f),
     glm::vec3(-0.273077f, 0.264156f, -0.181063f), glm::vec3(0.0192792f, 0.310677f, 0.360827f), glm::vec3(-0.252072f, 0.309068f, 0.0559487f),
     glm::vec3(-0.302903f, -0.0365484f, 0.308075f), glm::vec3(-0.198631f, -0.303337f, 0.315939f), glm::vec3(-0.347168f, -0.209269f, -0.343179f),
-    glm::vec3(-0.353572f, -0.262772f, 0.230868f), 
-    glm::vec3(0.0907949f, -0.399212f, -0.208774f), glm::vec3(-0.0186592f, -0.202571f, -0.213606f), glm::vec3(-0.0883394f, -0.287907f, -0.383346f),
-    glm::vec3(-0.273077f, 0.264156f, -0.181063f), glm::vec3(0.0192792f, 0.310677f, 0.360827f), glm::vec3(-0.252072f, 0.309068f, 0.0559487f),
-    glm::vec3(-0.302903f, -0.0365484f, 0.308075f), glm::vec3(-0.198631f, -0.303337f, 0.315939f), glm::vec3(-0.347168f, -0.209269f, -0.343179f),
-    glm::vec3(-0.353572f, -0.262772f, 0.230868f),
-    
+    glm::vec3(-0.353572f, -0.262772f, 0.230868f),    
 };
 
 // 资产
@@ -66,8 +61,12 @@ ParticleSystem ps;
 ParticleEmitter pe;
 StaticSphere* sphere = new StaticSphere(1.0f, 30, 30);
 MeshParticle particle = MeshParticle();
-static const float DEFAULT_RADIUS = 0.02f;
-static const int DEFAULT_LIFESPAN = 30;
+
+static const float DEFAULT_RADIUS = 0.02f; // 粒子初始半径
+static const int DEFAULT_LIFESPAN = 10; // 粒子初始生命周期
+static const int BLAST_LIFESPAN = 200; // 第3级之后的粒子生命周期
+static const int PARTICLES_PER_EMITTER = 10; // 每个粒子发射器释放的粒子数
+static const int SPLIT_NUM = 6; // 粒子每次破裂之后新产生的粒子数
 
 // 渲染显示
 void Display(GLFWwindow* window) {
@@ -268,39 +267,51 @@ void Display(GLFWwindow* window) {
         // 粒子破碎效果
         vector<int> eraseList;
         int size = ps.getSize();
-        for (int i = 0; i < size; i++) {
+        for (int i = size - 1; i >= 0; i--) {
             vector<Particle*> particles = ps.getParticles();
             MeshParticle* target = dynamic_cast<MeshParticle*>(particles.at(i));
+
+            if (target->level >= 3) {
+                int lifeSpan = target->getParamInteger(ATTRIB_TYPE::LIFESPAN) - 1;
+                target->setParamInteger(lifeSpan, ATTRIB_TYPE::LIFESPAN);
+                if (target->level >= 4)
+                    target->setParamFloat((float)lifeSpan / (float)BLAST_LIFESPAN, ATTRIB_TYPE::ALPHA);
+            }
 
             bool is_dead = target->isDead();
             if (is_dead) {
                 float radius = target->getRadius();
-                
+
                 // 避免粒子过小
-                if (radius >= DEFAULT_RADIUS / 5) {
+                if (radius >= DEFAULT_RADIUS / 4) {
                     eraseList.push_back(i);
                     glm::vec3 direction = target->getParamVector3(ATTRIB_TYPE::DIRECTION);
                     float velocity = target->getParamFloat(ATTRIB_TYPE::VELOCITY);
-                    std::vector<glm::vec3> directions = vectorSplit(direction, 30.0f);
+                    std::vector<glm::vec3> directions = vectorSplit(direction, 30.0f, SPLIT_NUM);
 
                     vector<Particle*> newParticles;
-                    for (int j = 0; j < 4; j++) {
+                    for (int j = 0; j < SPLIT_NUM; j++) {
                         MeshParticle* newParticle = new MeshParticle();
                         *newParticle = *target;
 
                         newParticle->setRadius(radius / 2);
-                        newParticle->setParamFloat(velocity * 0.8, ATTRIB_TYPE::VELOCITY);
+                        newParticle->level = target->level + 1;
+                        newParticle->setParamFloat(velocity, ATTRIB_TYPE::VELOCITY);
                         newParticle->setParamVector3(directions.at(j), ATTRIB_TYPE::DIRECTION);
                         newParticle->setParamVector3(target->getParamVector3(ATTRIB_TYPE::COLOR), ATTRIB_TYPE::COLOR);
                         newParticle->setParamVector3(target->getParamVector3(ATTRIB_TYPE::POSITION), ATTRIB_TYPE::POSITION);
                         newParticle->setParamFloat(target->getParamFloat(ATTRIB_TYPE::ALPHA), ATTRIB_TYPE::ALPHA);
-                        newParticle->setParamInteger(DEFAULT_LIFESPAN, ATTRIB_TYPE::LIFESPAN);
+                        newParticle->setParamInteger(target->level == 1 ? DEFAULT_LIFESPAN : BLAST_LIFESPAN, ATTRIB_TYPE::LIFESPAN);
                         newParticle->mass = target->mass / 4;
 
                         newParticles.push_back(newParticle);
                     }
 
                     ps.add(newParticles);
+                } 
+                
+                if (target->level >= 3) {
+                    eraseList.push_back(i);
                 }
             }
         }
@@ -471,7 +482,7 @@ void display::processInput(GLFWwindow* window)
 
             for (int i = 0; i < spherePosition.size(); i++) {
                 pe.positionInitialValue = spherePosition.at(i);
-                pe.generate(10, particle, ps);
+                pe.generate(PARTICLES_PER_EMITTER, particle, ps);
             }
 
             for (int i = 0; i < tumblers.size(); i++) {

@@ -64,6 +64,7 @@ public:
 class Particle {
 public:
 	ParticleParameter param;
+	int level;
 
 	Particle();
 	~Particle();

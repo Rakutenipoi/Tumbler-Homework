@@ -114,23 +114,23 @@ float generateRandomNumber()
 	return dis(gen);
 }
 
-std::vector<glm::vec3> vectorSplit(glm::vec3 direction, float alpha)
+std::vector<glm::vec3> vectorSplit(glm::vec3 direction, float alpha, int n)
 {
 	std::vector<glm::vec3> directions;
-	glm::vec3 perpendicular(-direction.y, direction.x, direction.z); // 垂直向量
 
-	float angle = glm::radians(alpha); // 旋转角度
+	float theta = std::acos(direction.x); // 计算原向量与x轴的夹角
+	float angleIncrement = alpha; // 新向量之间的夹角增量
 
-	// 旋转四次生成四个新向量
-	glm::vec3 direction_1 = direction * cos(angle) + glm::cross(perpendicular, direction) * sin(angle);
-	glm::vec3 direction_2 = direction_1 * cos(angle) + glm::cross(perpendicular, direction_1) * sin(angle);
-	glm::vec3 direction_3 = direction_2 * cos(angle) + glm::cross(perpendicular, direction_2) * sin(angle);
-	glm::vec3 direction_4 = direction_3 * cos(angle) + glm::cross(perpendicular, direction_3) * sin(angle);
+	for (int i = 0; i < n; i++) {
+		float theta_i = theta + glm::radians(angleIncrement * i); // 计算每个新向量与x轴的夹角
 
-	directions.push_back(glm::normalize(direction_1));
-	directions.push_back(glm::normalize(direction_2));
-	directions.push_back(glm::normalize(direction_3));
-	directions.push_back(glm::normalize(direction_4));
+		float x = std::cos(theta_i); // 计算新向量的x分量
+		float y = std::sin(theta_i); // 计算新向量的y分量
+
+		glm::vec3 direction_i(x, y, 0.0f); // 组合新向量的分量
+
+		directions.push_back(direction_i); // 将新向量添加到向量列表中
+	}
 
 	return directions;
 }
