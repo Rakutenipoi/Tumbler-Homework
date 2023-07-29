@@ -5,7 +5,13 @@
 
 ParticleParameter::ParticleParameter()
 {
-
+	this->acceleration = vec3(0.0f);
+	this->lifeSpan = DEFAULT_LIFESPAN;
+	this->position = vec3(0.0f);
+	this->direction = vec3(0.0f);
+	this->velocity = 0.0f;
+	this->alpha = 1.0f;
+	this->color = vec3(1.0f);
 }
 
 Particle::Particle()
@@ -39,10 +45,18 @@ void Particle::update(float deltaTime)
 {
 	vec3 position = this->getParamVector3(ATTRIB_TYPE::POSITION);
 	vec3 direction = this->getParamVector3(ATTRIB_TYPE::DIRECTION);
+	vec3 acceleration = this->getParamVector3(ATTRIB_TYPE::ACCELERATION);
 	float velocity = this->getParamFloat(ATTRIB_TYPE::VELOCITY);
+	
+	vec3 newVelocityVector = velocity * direction + acceleration * deltaTime;
+	vec3 newDirection = glm::normalize(newVelocityVector);
+	float newVelocity = glm::length(newVelocityVector);
 
-	position += velocity * direction;
+	position += newVelocityVector * deltaTime;
+
 	this->setParamVector3(position, ATTRIB_TYPE::POSITION);
+	this->setParamVector3(newDirection, ATTRIB_TYPE::DIRECTION);
+	this->setParamFloat(newVelocity, ATTRIB_TYPE::VELOCITY);
 }
 
 void Particle::init()
@@ -78,6 +92,7 @@ MeshParticle::MeshParticle()
 {
 	this->type = PARTICLE_TYPE::MESH;
 	this->radius = DEFAULT_RADIUS;
+	this->mass = 1.0f;
 }
 
 void MeshParticle::render(Shader shader)
@@ -129,6 +144,9 @@ void Particle::setParamVector3(vec3 value, ATTRIB_TYPE type)
 	case COLOR:
 		ParticleManager::setVector3(value, this->param, type);
 		break;
+	case ACCELERATION:
+		ParticleManager::setVector3(value, this->param, type);
+		break;
 	default:
 		break;
 	}
@@ -178,6 +196,7 @@ int Particle::getParamInteger(ATTRIB_TYPE type)
 
 ParticleSystem::ParticleSystem()
 {
+	this->isFalling = false;
 }
 
 ParticleSystem::~ParticleSystem()
@@ -200,7 +219,10 @@ void ParticleSystem::update(float deltaTime)
 		Particle* particle = particles.at(i);
 		particle->update(deltaTime);
 		MeshParticle* meshParticle = dynamic_cast<MeshParticle*>(particle);
-		this->checkBoundary(*meshParticle);
+		bool hitGround = this->checkBoundary(*meshParticle);
+		if (hitGround) {
+			this->erase(i);
+		}
 	}
 }
 
@@ -211,7 +233,7 @@ void ParticleSystem::render(Shader shader)
 	}
 }
 
-void ParticleSystem::checkBoundary(MeshParticle& target)
+bool ParticleSystem::checkBoundary(MeshParticle& target)
 {
 	float radius = target.getRadius();
 	vec3 position = target.getParamVector3(ATTRIB_TYPE::POSITION);
@@ -231,6 +253,9 @@ void ParticleSystem::checkBoundary(MeshParticle& target)
 
 	// Y÷·±ﬂΩÁ≈–∂œ
 	if (position.y < this->bounds[2] + radius) {
+		if (this->isFalling) {
+			return true;
+		}
 		direction.y *= -1;
 		position.y = this->bounds[2] + radius;
 	}
@@ -252,6 +277,8 @@ void ParticleSystem::checkBoundary(MeshParticle& target)
 
 	target.setParamVector3(position, ATTRIB_TYPE::POSITION);
 	target.setParamVector3(direction, ATTRIB_TYPE::DIRECTION);
+
+	return false;
 }
 
 void ParticleSystem::stop()
@@ -259,12 +286,20 @@ void ParticleSystem::stop()
 	for (Particle* particle : this->particles) {
 		particle->setParamFloat(0.0f, ATTRIB_TYPE::VELOCITY);
 		particle->setParamVector3(vec3(0.0f), ATTRIB_TYPE::DIRECTION);
+		particle->setParamVector3(vec3(0.0f), ATTRIB_TYPE::ACCELERATION);
 	}
 }
 
 void ParticleSystem::erase(int idx)
 {
 	this->particles.erase(this->particles.begin() + idx);
+}
+
+void ParticleSystem::applyAcceleration(vec3 value)
+{
+	for (Particle* particle : this->particles) {
+		particle->setParamVector3(value, ATTRIB_TYPE::ACCELERATION);
+	}
 }
 
 void ParticleSystem::setBoundary(vec2 x, vec2 y, vec2 z)
@@ -332,6 +367,9 @@ void ParticleManager::setVector3(vec3 value, ParticleParameter& target, ATTRIB_T
 	case COLOR:
 		target.color = value;
 		break;
+	case ACCELERATION:
+		target.acceleration = value;
+		break;
 	default:
 		break;
 	}
@@ -351,6 +389,9 @@ vec3 ParticleManager::getVector3(ParticleParameter& target, ATTRIB_TYPE type)
 		break;
 	case COLOR:
 		returnValue = target.color;
+		break;
+	case ACCELERATION:
+		returnValue = target.acceleration;
 		break;
 	default:
 		break;

@@ -29,6 +29,7 @@ enum ATTRIB_TYPE
 	LIFESPAN,
 	COLOR,
 	ALPHA,
+	ACCELERATION,
 };
 
 
@@ -40,6 +41,7 @@ public:
 private:
 	vec3 position;
 	vec3 direction;
+	vec3 acceleration;
 	float velocity;
 	int lifeSpan;
 	vec3 color;
@@ -94,6 +96,9 @@ class MeshParticle : public Particle {
 public:
 	MeshParticle();
 	MeshParticle& operator=(const MeshParticle& other);
+
+	float mass;
+
 	void render(Shader shader) override;
 
 	void setRadius(float value);
@@ -110,12 +115,15 @@ public:
 	ParticleSystem();
 	~ParticleSystem();
 
+	bool isFalling;
+
 	void add(vector<Particle*> particles);
 	void update(float deltaTime);
 	void render(Shader shader);
-	void checkBoundary(MeshParticle& target);
+	bool checkBoundary(MeshParticle& target);
 	void stop();
 	void erase(int idx);
+	void applyAcceleration(vec3 value);
 
 	void setBoundary(vec2 x, vec2 y, vec2 z);
 	void setBoundary(vec2 xyz);

@@ -69,7 +69,6 @@ MeshParticle particle = MeshParticle();
 static const float DEFAULT_RADIUS = 0.02f;
 static const int DEFAULT_LIFESPAN = 30;
 
-
 // 渲染显示
 void Display(GLFWwindow* window) {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -99,6 +98,15 @@ void Display(GLFWwindow* window) {
     box.setShader(boxShader);
     box.setData();
 
+    // 小球创建
+    for (int i = 0; i < spherePosition.size(); i++) {
+        PhysSphere* sphere = new PhysSphere(spherePosition.at(i), DEFAULT_RADIUS, 30, 30, 1.0f);
+        sphere->setAcc(glm::vec3(0.0f, -0.0f, 0.0f));
+        sphere->setColor(glm::vec3(1.0f));
+        sphere->setShader(sphereShader);
+        spheres.push_back(sphere);
+    }
+
     // 粒子系统设置
     sphere->initBuffer();
     particle.setMesh(sphere, MESH_TYPE::SPHERE);
@@ -108,8 +116,8 @@ void Display(GLFWwindow* window) {
 
     ps.setBoundary(vec2(-0.5f, 0.5f));
 
-    pe.velocityInitialValue = 5e-3f;
-    pe.velocityTolerance = 2e-3f;
+    pe.velocityInitialValue = 0.3f;
+    pe.velocityTolerance = 0.1f;
     
     // 读取模型
     // --------
@@ -193,12 +201,16 @@ void Display(GLFWwindow* window) {
         shadowShader.setVector3("lightPos", pointLight.position);
         box.draw();
         shadowShader.use();
-        /*for (int i = 0; i < spheres.size(); i++) {
+
+        ps.render(shadowShader);
+        
+        for (int i = 0; i < spheres.size(); i++) {
             PhysSphere* sphere = spheres.at(i);
             sphereModel.at(i) = sphere->update(deltaTime);
             shadowShader.setMatrix4("model", sphereModel.at(i));
             sphere->draw(shadowShader);
-        }*/
+        }
+
         for (int i = 0; i < tumblers.size(); i++) {
             // 位姿更新
             glm::mat4 _model = tumblers.at(i)->update(deltaTime);
@@ -238,14 +250,15 @@ void Display(GLFWwindow* window) {
         box.draw();
         // 绘制小球
         // ------------------------------------------------------------------------------------------------
-        //sphereShader.use();
-        //pointLight.apply(sphereShader, camera);
-        //for (int i = 0; i < spheres.size(); i++) {
-        //    PhysSphere* sphere = spheres.at(i);
-        //    // glm::mat4 _model = sphere->update(deltaTime);
-        //    sphere->setMatrix(sphereModel.at(i), view, projection);
-        //    sphere->draw();
-        //}
+        sphereShader.use();
+        pointLight.apply(sphereShader, camera);
+        for (int i = 0; i < spheres.size(); i++) {
+            spheres.at(i)->setShader(sphereShader);
+            PhysSphere* sphere = spheres.at(i);
+            // glm::mat4 _model = sphere->update(deltaTime);
+            sphere->setMatrix(sphereModel.at(i), view, projection);
+            sphere->draw();
+        }
         // 绘制粒子
         // --------------------------------------------------------------------------------------------------
         sphereShader.use();
@@ -282,6 +295,7 @@ void Display(GLFWwindow* window) {
                         newParticle->setParamVector3(target->getParamVector3(ATTRIB_TYPE::POSITION), ATTRIB_TYPE::POSITION);
                         newParticle->setParamFloat(target->getParamFloat(ATTRIB_TYPE::ALPHA), ATTRIB_TYPE::ALPHA);
                         newParticle->setParamInteger(DEFAULT_LIFESPAN, ATTRIB_TYPE::LIFESPAN);
+                        newParticle->mass = target->mass / 4;
 
                         newParticles.push_back(newParticle);
                     }
@@ -328,6 +342,7 @@ void Display(GLFWwindow* window) {
                     if (is_interact) {
                         target->setParamInteger(target->getParamInteger(ATTRIB_TYPE::LIFESPAN) - 1, ATTRIB_TYPE::LIFESPAN);
                         glm::vec3 hitNormal = glm::vec3(hit_normal);
+                        float mass = target->mass;
 
                         // 小球变色
                         target->setParamVector3(glm::vec3(1.0f, 0.2f, 0.3f), ATTRIB_TYPE::COLOR);
@@ -342,16 +357,16 @@ void Display(GLFWwindow* window) {
 
                         // 碰撞平移
                         glm::vec3 velocityTranslate = glm::vec3(hitNormal.x, 0.0f, hitNormal.z);
-                        float velocityTranslateRate = 0.8f; // 速度调节比率
+                        float velocityTranslateRate = 0.1f * mass; // 速度调节比率
                         tumblers.at(i)->addValue(-velocityTranslate * velocityTranslateRate * velocitySphereValue, PHYS_PARAM_TYPE::VELOCITY);
 
                         // 碰撞旋转
-                        float velocityRotateRate = 250.0f;
+                        float velocityRotateRate = 25.0f * mass;
                         float volocityRotate = 1 - glm::dot(direction, -velocityTranslate);
                         tumblers.at(i)->addValue(glm::vec3(0.0f, volocityRotate * velocityRotateRate * velocitySphereValue, 0.0f), PHYS_PARAM_TYPE::ANGLE_VELOCITY);
 
                         // 碰撞摇摆
-                        float velocitySwingRate = 1000.0f;
+                        float velocitySwingRate = 100.0f * mass;
                         glm::vec3 velocitySwing = glm::vec3(-hitNormal.z, 0.0f, hitNormal.x) * hit_normal.w * velocitySwingRate * velocitySphereValue;
                         tumblers.at(i)->addValue(velocitySwing, PHYS_PARAM_TYPE::ANGLE_VELOCITY);
                     }
@@ -452,9 +467,11 @@ void display::processInput(GLFWwindow* window)
         if (First_R_Key) {
             First_R_Key = false;
             //InitSphere();
+            spheres.clear();
+
             for (int i = 0; i < spherePosition.size(); i++) {
                 pe.positionInitialValue = spherePosition.at(i);
-                pe.generate(1, particle, ps);
+                pe.generate(10, particle, ps);
             }
 
             for (int i = 0; i < tumblers.size(); i++) {
@@ -481,12 +498,9 @@ void display::processInput(GLFWwindow* window)
             First_S_Key = false;
             Ignore_Bound = true;
 
-            for (int i = 0; i < spheres.size(); i++) {
-                PhysSphere* sphere = spheres.at(i);
-                sphere->stop = true;
-                sphere->setAcc(glm::vec3(0.0f, -0.98f, 0.0f));
-                sphere->setVel(glm::vec3(0.0f));
-            }
+            ps.stop();
+            ps.applyAcceleration(vec3(0.0f, -0.5f, 0.0f));
+            ps.isFalling = true;
 
             for (int i = 0; i < tumblers.size(); i++) {
                 PhysModel* tumbler = tumblers.at(i);
@@ -505,15 +519,15 @@ void display::processInput(GLFWwindow* window)
         First_S_Key = true;
         Ignore_Bound = false;
 
-        for (int i = 0; i < spheres.size(); i++) {
-            PhysSphere* sphere = spheres.at(i);
-            sphere->stop = false;
-            sphere->setAcc(glm::vec3(0.0f));
-            sphere->setVel(glm::vec3(0.0f));
-            sphere->setPos(spherePosition.at(i));
+        // 重新创建小球
+        for (int i = 0; i < spherePosition.size(); i++) {
+            PhysSphere* sphere = new PhysSphere(spherePosition.at(i), DEFAULT_RADIUS, 30, 30, 1.0f);
+            sphere->setAcc(glm::vec3(0.0f, -0.0f, 0.0f));
             sphere->setColor(glm::vec3(1.0f));
-            sphere->setAlpha(1.0f);
+            spheres.push_back(sphere);
         }
+
+        ps.isFalling = false;
 
         for (int i = 0; i < tumblers.size(); i++) {
             PhysModel* tumbler = tumblers.at(i);
