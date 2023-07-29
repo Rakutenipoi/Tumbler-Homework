@@ -10,6 +10,7 @@
 
 #include "StaticMesh.h"
 #include "Shader.h"
+#include "utils.h"
 
 using namespace glm;
 using namespace std;
@@ -63,8 +64,8 @@ public:
 	ParticleParameter param;
 
 	Particle();
-	//Particle(const Particle& other);
 	~Particle();
+	Particle& operator=(const Particle& other);
 
 	void update(float deltaTime);
 	void init();
@@ -98,7 +99,7 @@ public:
 	void add(vector<Particle> particles);
 	void update(float deltaTime);
 	void render(Shader shader);
-	void checkBoundary(Particle target);
+	void checkBoundary(Particle& target);
 	void setBoundary(vec2 x, vec2 y, vec2 z);
 	void setBoundary(vec2 xyz);
 
@@ -115,6 +116,6 @@ public:
 	vec3 positionTolerance;
 	vec3 positionInitialValue;
 
-	void generate(int num, Particle target, ParticleSystem ps);
+	void generate(int num, Particle target, ParticleSystem& ps);
 };
 

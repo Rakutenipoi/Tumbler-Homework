@@ -51,21 +51,24 @@ void Test(GLFWwindow* window)
 
     // 创建粒子
     StaticSphere* sphere = new StaticSphere(1.0f, DEFAULT_SLICES, DEFAULT_STACKS);
-    vector<Particle> particles;
-    for (int i = 0; i < spherePosition.size(); i++) {
-        Particle particle = Particle();
-        particle.setMesh(sphere, MESH_TYPE::SPHERE);
-        particle.setParamVector3(spherePosition.at(i), ATTRIB_TYPE::POSITION);
-        particle.setParamVector3(vec3(1.0f), ATTRIB_TYPE::COLOR);
-        particle.setParamFloat(1.0f, ATTRIB_TYPE::ALPHA);
 
-        particles.push_back(particle);
-    }
+    Particle particle = Particle();
+    particle.setMesh(sphere, MESH_TYPE::SPHERE);
+    particle.setParamVector3(vec3(1.0f), ATTRIB_TYPE::COLOR);
+    particle.setParamFloat(1.0f, ATTRIB_TYPE::ALPHA);
+
     ParticleSystem ps;
-    ps.add(particles);
-    ps.setBoundary(vec2(-0.5f, 0.5f));
-    ParticleEmitter pe;
+    ps.setBoundary(vec2(-1.0f, 1.0f));
 
+    ParticleEmitter pe;
+    pe.velocityInitialValue = 5e-3f;
+    pe.velocityTolerance = 2e-3f;
+
+    for (int i = 0; i < spherePosition.size(); i++) {
+        pe.positionInitialValue = spherePosition.at(i);
+        pe.generate(10, particle, ps);
+    }
+    
     // 渲染循环
     // --------
     while (!glfwWindowShouldClose(window))
@@ -100,6 +103,7 @@ void Test(GLFWwindow* window)
         sphereShader.setMatrix4("projection", projection);
         pointLight.apply(sphereShader, camera);
         ps.render(sphereShader);
+        ps.update(deltaTime);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

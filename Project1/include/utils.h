@@ -4,6 +4,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include <ctime>
+#include <random>
+#include <glm/gtc/random.hpp>
 
 #include "Shader.h"
 
@@ -13,4 +16,4 @@ void triangleDraw(std::vector<glm::vec3> pts, glm::vec3 color, Shader shader);
 glm::mat4 TranslateTowardsDirection(glm::vec3& direction, const float distance);
 void PrintMat4(const glm::mat4& matrix);
 
-
+float generateRandomNumber();

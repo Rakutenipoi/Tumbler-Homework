@@ -12,16 +12,18 @@ Particle::Particle()
 	this->radius = DEFAULT_RADIUS;
 }
 
-//Particle::Particle(const Particle& other)
-//{
-//	this->radius = other.radius;
-//	this->type = other.type;
-//	this->mesh = other.mesh;
-//}
-
 Particle::~Particle()
 {
 	//delete this->mesh;
+}
+
+Particle& Particle::operator=(const Particle& other)
+{
+	this->radius = other.radius;
+	this->type = other.type;
+	this->mesh = other.mesh;
+
+	return *this;
 }
 
 void Particle::update(float deltaTime)
@@ -168,9 +170,9 @@ void ParticleSystem::add(vector<Particle> particles)
 
 void ParticleSystem::update(float deltaTime)
 {
-	for (Particle particle : this->particles) {
-		particle.update(deltaTime);
-		this->checkBoundary(particle);
+	for (int i = 0; i < this->particles.size(); i++) {
+		particles.at(i).update(deltaTime);
+		this->checkBoundary(particles.at(i));
 	}
 }
 
@@ -181,7 +183,7 @@ void ParticleSystem::render(Shader shader)
 	}
 }
 
-void ParticleSystem::checkBoundary(Particle target)
+void ParticleSystem::checkBoundary(Particle& target)
 {
 	float radius = target.getRadius();
 	vec3 position = target.getParamVector3(ATTRIB_TYPE::POSITION);
@@ -342,7 +344,22 @@ ParticleEmitter::ParticleEmitter()
 {
 }
 
-void ParticleEmitter::generate(int num, Particle target, ParticleSystem ps)
+void ParticleEmitter::generate(int num, Particle target, ParticleSystem& ps)
 {
+	vector<Particle> particles;
+	for (int i = 0; i < num; i++) {
+		Particle particle;
+		particle = target;
+		particle.setParamVector3(target.getParamVector3(ATTRIB_TYPE::COLOR), ATTRIB_TYPE::COLOR);
+		particle.setParamFloat(target.getParamFloat(ATTRIB_TYPE::ALPHA), ATTRIB_TYPE::ALPHA);
+		particle.setParamVector3(this->positionInitialValue, ATTRIB_TYPE::POSITION);
+		vec3 direction = vec3(generateRandomNumber(), generateRandomNumber(), generateRandomNumber()) * 2.0f - 1.0f;
+		particle.setParamVector3(glm::normalize(direction), ATTRIB_TYPE::DIRECTION);
+		particle.setParamFloat(velocityInitialValue + (2 * generateRandomNumber() - 1) * velocityTolerance, ATTRIB_TYPE::VELOCITY);
+		particle.setParamInteger(3, ATTRIB_TYPE::LIFESPAN);
 
+		particles.push_back(particle);
+	}
+
+	ps.add(particles);
 }

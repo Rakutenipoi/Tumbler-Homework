@@ -497,15 +497,6 @@ void InitSphere()
     }
 }
 
-float generateRandomNumber()
-{
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dis(0.0, 1.0);
-
-    return dis(gen);
-}
-
 vector<glm::mat4> configLightMatrix(Light light)
 {
     float aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;

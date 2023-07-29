@@ -105,4 +105,11 @@ void PrintMat4(const glm::mat4& matrix)
 	}
 }
 
+float generateRandomNumber()
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<float> dis(0.0, 1.0);
 
+	return dis(gen);
+}
