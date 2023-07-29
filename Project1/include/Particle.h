@@ -65,46 +65,57 @@ public:
 
 	Particle();
 	~Particle();
-	Particle& operator=(const Particle& other);
 
 	void update(float deltaTime);
 	void init();
 	bool isDead();
-	void render(Shader shader);
+	virtual void render(Shader shader);
 
-	void setMesh(StaticMesh* mesh, MESH_TYPE type);
 	void setID(int value);
-	void setRadius(float value);
+	
 	void setParamVector3(vec3 value, ATTRIB_TYPE type);
 	void setParamFloat(float value, ATTRIB_TYPE type);
 	void setParamInteger(int value, ATTRIB_TYPE type);
-
 	int getID();
-	float getRadius();
+	
 	vec3 getParamVector3(ATTRIB_TYPE type);
 	float getParamFloat(ATTRIB_TYPE type);
 	int getParamInteger(ATTRIB_TYPE type);
 
-private:
-	StaticMesh* mesh;
+protected:
+	
 	PARTICLE_TYPE type;
 	int id;
-	float radius;
+	
 };
 
+class MeshParticle : public Particle {
+public:
+	MeshParticle();
+	MeshParticle& operator=(const MeshParticle& other);
+	void render(Shader shader) override;
+
+	void setRadius(float value);
+	void setMesh(StaticMesh* mesh, MESH_TYPE type);
+
+	float getRadius();
+private:
+	StaticMesh* mesh;
+	float radius;
+};
 
 class ParticleSystem {
 public:
 	ParticleSystem();
-	void add(vector<Particle> particles);
+	void add(vector<Particle*> particles);
 	void update(float deltaTime);
 	void render(Shader shader);
-	void checkBoundary(Particle& target);
+	void checkBoundary(MeshParticle& target);
 	void setBoundary(vec2 x, vec2 y, vec2 z);
 	void setBoundary(vec2 xyz);
 
 private:
-	vector<Particle> particles;
+	vector<Particle*> particles;
 	float bounds[6]; // -x, +x, -y, +y, -z, +z
 };
 
@@ -117,5 +128,6 @@ public:
 	vec3 positionInitialValue;
 
 	void generate(int num, Particle target, ParticleSystem& ps);
+	void generate(int num, MeshParticle target, ParticleSystem& ps);
 };
 

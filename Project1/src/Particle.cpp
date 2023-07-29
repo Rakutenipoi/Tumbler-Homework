@@ -9,7 +9,7 @@ ParticleParameter::ParticleParameter()
 
 Particle::Particle()
 {
-	this->radius = DEFAULT_RADIUS;
+	
 }
 
 Particle::~Particle()
@@ -17,7 +17,7 @@ Particle::~Particle()
 	//delete this->mesh;
 }
 
-Particle& Particle::operator=(const Particle& other)
+MeshParticle& MeshParticle::operator=(const MeshParticle& other)
 {
 	this->radius = other.radius;
 	this->type = other.type;
@@ -46,7 +46,51 @@ bool Particle::isDead()
 	return this->getParamInteger(ATTRIB_TYPE::LIFESPAN) <= 0 ? true : false;
 }
 
-void Particle::setMesh(StaticMesh* mesh, MESH_TYPE type)
+void Particle::setID(int value)
+{
+	this->id = value;
+}
+
+void MeshParticle::setRadius(float value)
+{
+	this->radius = value;
+}
+
+int Particle::getID()
+{
+	return this->id;
+}
+
+void Particle::render(Shader shader)
+{
+}
+
+MeshParticle::MeshParticle()
+{
+	this->radius = DEFAULT_RADIUS;
+}
+
+void MeshParticle::render(Shader shader)
+{
+	mat4 model = translate(mat4(1.0f), getParamVector3(ATTRIB_TYPE::POSITION));
+	model = glm::scale(model, glm::vec3(this->radius));
+	shader.setMatrix4("model", model);
+	shader.setFloat("alpha", getParamFloat(ATTRIB_TYPE::ALPHA));
+	shader.setVector3("color", getParamVector3(ATTRIB_TYPE::COLOR));
+
+	if (this->mesh->type == MESH_TYPE::SPHERE) {
+		StaticSphere* sphere = dynamic_cast<StaticSphere*>(this->mesh);
+		sphere->draw();
+	}
+
+}
+
+float MeshParticle::getRadius()
+{
+	return this->radius;
+}
+
+void MeshParticle::setMesh(StaticMesh* mesh, MESH_TYPE type)
 {
 	switch (type)
 	{
@@ -60,41 +104,6 @@ void Particle::setMesh(StaticMesh* mesh, MESH_TYPE type)
 	}
 
 	mesh->type = type;
-}
-
-void Particle::setID(int value)
-{
-	this->id = value;
-}
-
-void Particle::setRadius(float value)
-{
-	this->radius = value;
-}
-
-int Particle::getID()
-{
-	return this->id;
-}
-
-float Particle::getRadius()
-{
-	return this->radius;
-}
-
-void Particle::render(Shader shader)
-{
-	mat4 model = translate(mat4(1.0f), getParamVector3(ATTRIB_TYPE::POSITION));
-	model = glm::scale(model, glm::vec3(this->radius));
-	shader.setMatrix4("model", model);
-	shader.setFloat("alpha", getParamFloat(ATTRIB_TYPE::ALPHA));
-	shader.setVector3("color", getParamVector3(ATTRIB_TYPE::COLOR));
-
-	if (this->mesh->type == MESH_TYPE::SPHERE) {
-		StaticSphere* sphere = dynamic_cast<StaticSphere*>(this->mesh);
-		sphere->draw();
-	}
-	
 }
 
 void Particle::setParamVector3(vec3 value, ATTRIB_TYPE type)
@@ -161,9 +170,9 @@ ParticleSystem::ParticleSystem()
 {
 }
 
-void ParticleSystem::add(vector<Particle> particles)
+void ParticleSystem::add(vector<Particle*> particles)
 {
-	for (Particle particle : particles) {
+	for (Particle* particle : particles) {
 		this->particles.push_back(particle);
 	}
 }
@@ -171,19 +180,20 @@ void ParticleSystem::add(vector<Particle> particles)
 void ParticleSystem::update(float deltaTime)
 {
 	for (int i = 0; i < this->particles.size(); i++) {
-		particles.at(i).update(deltaTime);
-		this->checkBoundary(particles.at(i));
+		particles.at(i)->update(deltaTime);
+		MeshParticle* meshParticle = dynamic_cast<MeshParticle*>(particles.at(i));
+		this->checkBoundary(*meshParticle);
 	}
 }
 
 void ParticleSystem::render(Shader shader)
 {
-	for (Particle particle : this->particles) {
-		particle.render(shader);
+	for (int i = 0; i < this->particles.size(); i++) {
+		particles.at(i)->render(shader);
 	}
 }
 
-void ParticleSystem::checkBoundary(Particle& target)
+void ParticleSystem::checkBoundary(MeshParticle& target)
 {
 	float radius = target.getRadius();
 	vec3 position = target.getParamVector3(ATTRIB_TYPE::POSITION);
@@ -346,17 +356,23 @@ ParticleEmitter::ParticleEmitter()
 
 void ParticleEmitter::generate(int num, Particle target, ParticleSystem& ps)
 {
-	vector<Particle> particles;
+	
+}
+
+void ParticleEmitter::generate(int num, MeshParticle target, ParticleSystem& ps)
+{
+	vector<Particle*> particles;
 	for (int i = 0; i < num; i++) {
-		Particle particle;
-		particle = target;
-		particle.setParamVector3(target.getParamVector3(ATTRIB_TYPE::COLOR), ATTRIB_TYPE::COLOR);
-		particle.setParamFloat(target.getParamFloat(ATTRIB_TYPE::ALPHA), ATTRIB_TYPE::ALPHA);
-		particle.setParamVector3(this->positionInitialValue, ATTRIB_TYPE::POSITION);
+		MeshParticle* particle = new MeshParticle();
+		*particle = target;
+		particle->setParamVector3(target.getParamVector3(ATTRIB_TYPE::COLOR), ATTRIB_TYPE::COLOR);
+		particle->setParamFloat(target.getParamFloat(ATTRIB_TYPE::ALPHA), ATTRIB_TYPE::ALPHA);
+		particle->setParamVector3(this->positionInitialValue, ATTRIB_TYPE::POSITION);
 		vec3 direction = vec3(generateRandomNumber(), generateRandomNumber(), generateRandomNumber()) * 2.0f - 1.0f;
-		particle.setParamVector3(glm::normalize(direction), ATTRIB_TYPE::DIRECTION);
-		particle.setParamFloat(velocityInitialValue + (2 * generateRandomNumber() - 1) * velocityTolerance, ATTRIB_TYPE::VELOCITY);
-		particle.setParamInteger(3, ATTRIB_TYPE::LIFESPAN);
+		particle->setParamVector3(glm::normalize(direction), ATTRIB_TYPE::DIRECTION);
+		particle->setParamFloat(velocityInitialValue + (2 * generateRandomNumber() - 1) * velocityTolerance, ATTRIB_TYPE::VELOCITY);
+		particle->setParamInteger(3, ATTRIB_TYPE::LIFESPAN);
+
 
 		particles.push_back(particle);
 	}

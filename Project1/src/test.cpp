@@ -52,7 +52,7 @@ void Test(GLFWwindow* window)
     // ´´½¨Á£×Ó
     StaticSphere* sphere = new StaticSphere(1.0f, DEFAULT_SLICES, DEFAULT_STACKS);
 
-    Particle particle = Particle();
+    MeshParticle particle = MeshParticle();
     particle.setMesh(sphere, MESH_TYPE::SPHERE);
     particle.setParamVector3(vec3(1.0f), ATTRIB_TYPE::COLOR);
     particle.setParamFloat(1.0f, ATTRIB_TYPE::ALPHA);
