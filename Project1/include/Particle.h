@@ -99,6 +99,7 @@ public:
 	MeshParticle& operator=(const MeshParticle& other);
 
 	float mass;
+	
 
 	void render(Shader shader) override;
 
@@ -117,6 +118,9 @@ public:
 	~ParticleSystem();
 
 	bool isFalling;
+	bool isCheckClash;
+	bool isCheckBoundary;
+	float friction;
 
 	void add(vector<Particle*> particles);
 	void update(float deltaTime);
@@ -124,10 +128,12 @@ public:
 	bool checkBoundary(MeshParticle& target);
 	void stop();
 	void erase(int idx);
+	void erase(Particle* target);
 	void applyAcceleration(vec3 value);
 
 	void setBoundary(vec2 x, vec2 y, vec2 z);
 	void setBoundary(vec2 xyz);
+	void setBoundary(float xyz);
 
 	int getSize();
 	vector<Particle*> getParticles();
@@ -147,5 +153,6 @@ public:
 
 	void generate(int num, Particle target, ParticleSystem& ps);
 	void generate(int num, MeshParticle target, ParticleSystem& ps);
+	void generate(int num, MeshParticle target, ParticleSystem& ps, vec3 direction);
 };
 

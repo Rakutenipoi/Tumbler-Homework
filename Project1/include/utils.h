@@ -21,3 +21,5 @@ float generateRandomNumber();
 
 // 输入一个向量，返回与该向量夹角为alpha的n个向量，角度单位为度
 std::vector<glm::vec3> vectorSplit(glm::vec3 direction, float alpha, int n);
+glm::vec3 generateRandomDirection(int n);
+

@@ -134,3 +134,16 @@ std::vector<glm::vec3> vectorSplit(glm::vec3 direction, float alpha, int n)
 
 	return directions;
 }
+
+glm::vec3 generateRandomDirection(int n)
+{
+	float angle = static_cast<float>(std::rand() % (n + 1)); // 生成0到n之间的随机角度
+	angle = glm::radians(angle); // 将角度转换为弧度
+
+	float x = std::cos(angle); // 计算随机方向的x分量
+	float y = std::sin(angle); // 计算随机方向的y分量
+
+	glm::vec3 randomDirection(x, y, 0.0f); // 组合随机方向的分量
+
+	return randomDirection;
+}

@@ -65,8 +65,11 @@ MeshParticle particle = MeshParticle();
 static const float DEFAULT_RADIUS = 0.02f; // 粒子初始半径
 static const int DEFAULT_LIFESPAN = 10; // 粒子初始生命周期
 static const int BLAST_LIFESPAN = 200; // 第3级之后的粒子生命周期
-static const int PARTICLES_PER_EMITTER = 10; // 每个粒子发射器释放的粒子数
-static const int SPLIT_NUM = 6; // 粒子每次破裂之后新产生的粒子数
+static const int PARTICLES_PER_EMITTER = 50; // 每个粒子发射器释放的粒子数
+static const int SPLIT_NUM = 6; // 粒子正常破裂之后新产生的粒子数
+static const int BLAST_NUM = 20; // 粒子最后一次破裂之后新产生的粒子数
+static const float DEFAULT_VELOCITY = 0.3f; // 粒子初始速度
+static const float DEFAULT_VELOCITY_VARIANCE = 0.1f; // 粒子速度随机范围
 
 // 渲染显示
 void Display(GLFWwindow* window) {
@@ -115,8 +118,8 @@ void Display(GLFWwindow* window) {
 
     ps.setBoundary(vec2(-0.5f, 0.5f));
 
-    pe.velocityInitialValue = 0.3f;
-    pe.velocityTolerance = 0.1f;
+    pe.velocityInitialValue = DEFAULT_VELOCITY;
+    pe.velocityTolerance = DEFAULT_VELOCITY_VARIANCE;
     
     // 读取模型
     // --------
@@ -274,8 +277,8 @@ void Display(GLFWwindow* window) {
             if (target->level >= 3) {
                 int lifeSpan = target->getParamInteger(ATTRIB_TYPE::LIFESPAN) - 1;
                 target->setParamInteger(lifeSpan, ATTRIB_TYPE::LIFESPAN);
-                if (target->level >= 4)
-                    target->setParamFloat((float)lifeSpan / (float)BLAST_LIFESPAN, ATTRIB_TYPE::ALPHA);
+                target->setParamVector3(vec3(1.0, 0.9, 0.4), ATTRIB_TYPE::COLOR);
+                target->setParamFloat((float)lifeSpan / (float)BLAST_LIFESPAN, ATTRIB_TYPE::ALPHA);
             }
 
             bool is_dead = target->isDead();
@@ -283,26 +286,38 @@ void Display(GLFWwindow* window) {
                 float radius = target->getRadius();
 
                 // 避免粒子过小
-                if (radius >= DEFAULT_RADIUS / 4) {
+                if (target->level <= 2) {
                     eraseList.push_back(i);
                     glm::vec3 direction = target->getParamVector3(ATTRIB_TYPE::DIRECTION);
                     float velocity = target->getParamFloat(ATTRIB_TYPE::VELOCITY);
-                    std::vector<glm::vec3> directions = vectorSplit(direction, 30.0f, SPLIT_NUM);
+                    std::vector<glm::vec3> directions = vectorSplit(direction, 30.0f, target->level == 1 ? SPLIT_NUM : BLAST_NUM);
+                    int level = target->level;
+                    float newRadius = radius * 0.5f;
+                    float newMass = target->mass * 0.1f;
+                    int newLifeSpan = DEFAULT_LIFESPAN;
+                    float newVelocity = velocity;
+                    if (level == 2) {
+                        newRadius =radius * 0.4f;
+                        newMass = target->mass * 0.01f;
+                        newLifeSpan = BLAST_LIFESPAN;
+                        newVelocity = velocity * 1.5f;
+                    }
+                    
 
                     vector<Particle*> newParticles;
-                    for (int j = 0; j < SPLIT_NUM; j++) {
+                    for (int j = 0; j < directions.size(); j++) {
                         MeshParticle* newParticle = new MeshParticle();
                         *newParticle = *target;
 
-                        newParticle->setRadius(radius / 2);
-                        newParticle->level = target->level + 1;
-                        newParticle->setParamFloat(velocity, ATTRIB_TYPE::VELOCITY);
+                        newParticle->setRadius(newRadius);
+                        newParticle->level = level + 1;
+                        newParticle->setParamFloat(newVelocity, ATTRIB_TYPE::VELOCITY);
                         newParticle->setParamVector3(directions.at(j), ATTRIB_TYPE::DIRECTION);
                         newParticle->setParamVector3(target->getParamVector3(ATTRIB_TYPE::COLOR), ATTRIB_TYPE::COLOR);
                         newParticle->setParamVector3(target->getParamVector3(ATTRIB_TYPE::POSITION), ATTRIB_TYPE::POSITION);
                         newParticle->setParamFloat(target->getParamFloat(ATTRIB_TYPE::ALPHA), ATTRIB_TYPE::ALPHA);
-                        newParticle->setParamInteger(target->level == 1 ? DEFAULT_LIFESPAN : BLAST_LIFESPAN, ATTRIB_TYPE::LIFESPAN);
-                        newParticle->mass = target->mass / 4;
+                        newParticle->setParamInteger(newLifeSpan, ATTRIB_TYPE::LIFESPAN);
+                        newParticle->mass = newMass;
 
                         newParticles.push_back(newParticle);
                     }
