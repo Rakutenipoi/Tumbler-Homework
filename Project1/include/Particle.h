@@ -38,7 +38,7 @@ public:
 	ParticleParameter();
 	friend class ParticleManager;
 
-private:
+public:
 	vec3 position;
 	vec3 direction;
 	vec3 acceleration;

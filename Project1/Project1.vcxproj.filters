@@ -165,5 +165,10 @@
     <None Include="Shader\Geometry\shadow.gs" />
     <None Include="Shader\Fragment\shadow.fs" />
     <None Include="Shader\Vertex\shadow.vs" />
+    <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\utils.cu" />
+    <CudaCompile Include="include\utils.cuh" />
   </ItemGroup>
 </Project>

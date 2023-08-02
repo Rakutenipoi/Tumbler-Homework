@@ -1,5 +1,7 @@
 #include "../include/Particle.h"
 
+#include "../include/utils.cuh"
+
 #define DEFAULT_RADIUS 0.01f
 #define DEFAULT_LIFESPAN 30
 
@@ -221,7 +223,14 @@ void ParticleSystem::update(float deltaTime)
 {
 	for (int i = 0; i < this->particles.size(); i++) {
 		Particle* particle = particles.at(i);
-		particle->update(deltaTime);
+		ParticleParameter* particleData_h = &particle->param;
+
+		// cuda position update
+		updateParticle_h(particleData_h, &deltaTime);
+
+		// normal position update
+		//particle->update(deltaTime);
+
 		if (isCheckBoundary) {
 			MeshParticle* meshParticle = dynamic_cast<MeshParticle*>(particle);
 
@@ -230,6 +239,7 @@ void ParticleSystem::update(float deltaTime)
 				this->erase(i);
 			}
 		}
+
 	}
 }
 
