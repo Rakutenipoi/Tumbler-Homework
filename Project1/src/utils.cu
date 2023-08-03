@@ -12,7 +12,7 @@ void updateParticle_h(ParticleParameter* particleData, float* deltaTime) {
 	cudaMemcpy(particleData_d, particleData, sizeof(ParticleParameter), cudaMemcpyHostToDevice);
 	cudaMemcpy(deltaTime_d, deltaTime, sizeof(float), cudaMemcpyHostToDevice);
 
-	updateParticle<<<4, 6>>>(particleData_d, deltaTime_d);
+	// updateParticle<<<256, 256>>>(particleData_d, deltaTime_d);
 
 	// transfer the data from device memory to host memory
 	cudaMemcpy(particleData, particleData_d, sizeof(ParticleParameter), cudaMemcpyDeviceToHost);
@@ -22,7 +22,7 @@ void updateParticle_h(ParticleParameter* particleData, float* deltaTime) {
 	cudaFree(deltaTime_d);
 }
 
-__global__ void updateParticle(ParticleParameter * particleData, float* deltaTime) {
+__device__ void updateParticle(ParticleParameter * particleData, float* deltaTime) {
 	vec3 position = particleData->position;
 	vec3 direction = particleData->direction;
 	vec3 acceleration = particleData->acceleration;
@@ -32,10 +32,60 @@ __global__ void updateParticle(ParticleParameter * particleData, float* deltaTim
 	vec3 newDirection = glm::normalize(newVelocityVector);
 	float newVelocity = glm::length(newVelocityVector);
 
-	position += newVelocityVector * *deltaTime;
-
+	position += *deltaTime * newVelocityVector;
 	particleData->position = position;
 	particleData->direction = newDirection;
 	particleData->velocity = newVelocity;
+}
+
+void updateParticleSystem(Particle** particlesData, float* deltaTime, int numParticles) {
+	Particle** particlesPtr_d;
+	Particle* particlePtr_d;
+	Particle* particlePtr_h = new Particle[numParticles];
+	float* deltaTime_d;
+	int* numParticles_d;
+	size_t particlesSize = numParticles * sizeof(Particle*);
+	size_t particleSize = numParticles * sizeof(Particle);
+
+	for (int i = 0; i < numParticles; i++) {
+		cudaMemcpy(&particlePtr_h[i], particlesData[i], sizeof(Particle), cudaMemcpyHostToHost);
+	}
+
+	// allocate device memory
+	cudaMalloc((void**)&particlesPtr_d, particlesSize);
+	cudaMalloc((void**)&particlePtr_d, particleSize);
+	cudaMalloc((void**)&deltaTime_d, sizeof(float));
+	cudaMalloc((void**)&numParticles_d, sizeof(int));
+
+	// transfer the data from host to device
+	cudaMemcpy(particlesPtr_d, particlesData, particlesSize, cudaMemcpyHostToDevice);
+	cudaMemcpy(particlePtr_d, particlePtr_h, particleSize, cudaMemcpyHostToDevice);
+	cudaMemcpy(deltaTime_d, deltaTime, sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(numParticles_d, &numParticles, sizeof(int), cudaMemcpyHostToDevice);
+
+	updateParticleSystem<<<256, 512>>>(particlesPtr_d, particlePtr_d, deltaTime_d, numParticles_d);
+
+	// transfer the data from device to host
+	cudaMemcpy(particlePtr_h, particlePtr_d, particleSize, cudaMemcpyDeviceToHost);
+
+	for (int i = 0; i < numParticles; i++) {
+		cudaMemcpy(particlesData[i], &particlePtr_h[i], sizeof(Particle), cudaMemcpyHostToHost);
+	}
+
+	// delete device memory
+	cudaFree(particlesPtr_d);
+	cudaFree(particlePtr_d);
+	cudaFree(deltaTime_d);
+	cudaFree(numParticles_d);
+	delete[] particlePtr_h;
+}
+
+__global__ void updateParticleSystem(Particle** particlesData, Particle* particleData, float* deltaTime, int* numParticles) {
+	int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if (idx < *numParticles) {
+		Particle* particle = &particleData[idx];
+		updateParticle(&particle->param, deltaTime);
+	}
 }
 

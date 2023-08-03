@@ -221,12 +221,13 @@ void ParticleSystem::add(vector<Particle*> particles)
 
 void ParticleSystem::update(float deltaTime)
 {
+	Particle** particlesPtr_h = this->particles.data();
+	updateParticleSystem(particlesPtr_h, &deltaTime, this->particles.size());
+	cout << "Particles num: " << this->particles.size() << endl;
+
 	for (int i = 0; i < this->particles.size(); i++) {
 		Particle* particle = particles.at(i);
-		ParticleParameter* particleData_h = &particle->param;
-
-		// cuda position update
-		updateParticle_h(particleData_h, &deltaTime);
+		//ParticleParameter* particleData_h = &particle->param;
 
 		// normal position update
 		//particle->update(deltaTime);

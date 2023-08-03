@@ -62,10 +62,10 @@ ParticleEmitter pe;
 StaticSphere* sphere = new StaticSphere(1.0f, 30, 30);
 MeshParticle particle = MeshParticle();
 
-static const float DEFAULT_RADIUS = 0.02f; // 粒子初始半径
+static const float DEFAULT_RADIUS = 0.001f; // 粒子初始半径
 static const int DEFAULT_LIFESPAN = 10; // 粒子初始生命周期
 static const int BLAST_LIFESPAN = 200; // 第3级之后的粒子生命周期
-static const int PARTICLES_PER_EMITTER = 50; // 每个粒子发射器释放的粒子数
+static const int PARTICLES_PER_EMITTER = 10; // 每个粒子发射器释放的粒子数
 static const int SPLIT_NUM = 6; // 粒子正常破裂之后新产生的粒子数
 static const int BLAST_NUM = 20; // 粒子最后一次破裂之后新产生的粒子数
 static const float DEFAULT_VELOCITY = 0.3f; // 粒子初始速度
@@ -335,7 +335,9 @@ void Display(GLFWwindow* window) {
         }
         // 粒子渲染与位姿更新
         ps.render(sphereShader);
-        ps.update(deltaTime);
+        if (!First_R_Key) {
+            ps.update(deltaTime);
+        }
         // 绘制不倒翁
         // --------------------------------------------------------------------------------------------------
         modelShader.use();
