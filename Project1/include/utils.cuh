@@ -19,5 +19,5 @@ using namespace glm;
 extern "C" void updateParticle_h(ParticleParameter * particleData, float* deltaTime);
 extern "C" void updateParticleSystem(Particle** particlesData, float* deltaTime, int numParticles);
 __device__ void updateParticle(ParticleParameter * particleData, float* deltaTime);
-__global__ void updateParticleSystem(Particle** particlesData, Particle* particleData, float* deltaTime, int* numParticles);
+__global__ void updateParticleSystem(Particle* particleData, float* deltaTime, int* numParticles);
 
